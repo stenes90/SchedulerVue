@@ -29,7 +29,6 @@ export default {
   },
   copyPaste() {
     if (copy) {
-      let check = 0;
       return;
     }
   },
