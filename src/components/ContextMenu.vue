@@ -29,6 +29,7 @@ export default {
   },
   copyPaste() {
     if (copy) {
+      let canko = 0;
       return;
     }
   },
