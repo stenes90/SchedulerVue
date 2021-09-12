@@ -20,6 +20,7 @@
           <MatchSlots :date="date" :court="court" />
         </div>
       </div>
+      <ContextMeny match="" timeSlot="" />
     </div>
   </div>
 </template>
@@ -33,8 +34,9 @@ import schedule from "../Schedule.js";
 import ScheduleMixin from "../Mixins/ScheduleMixin.vue";
 import Grid from "./Grid.vue";
 import MatchSlots from "./MatchSlots.vue";
+import ContextMeny from "./ContextMenu.vue";
 export default {
-  components: { Grid, MatchSlots },
+  components: { Grid, MatchSlots, ContextMeny },
   mixins: [ScheduleMixin],
   data() {
     return {
@@ -48,13 +50,13 @@ export default {
     };
   },
   created() {
-    debugger;
     this.dates = tournament.PlayingDates;
     this.courts = tournament.Courts;
     this.isScheduled = this.$store.getters["getIsScheduled"];
     this.timeSlotWidth = this.timeFieldWidth(tournament.Classes);
     this.slotWidthString = this.timeSlotWidth.toString() + "vw";
     this.$store.dispatch("setFieldWidth", this.timeSlotWidth);
+
     console.log(tournament);
   },
   methods: {
@@ -62,10 +64,23 @@ export default {
       this.matches = schedule(tournament);
       this.isScheduled = true;
       this.timeSlots = this.timeFields(tournament.PlayingDates, this.matches);
+      for (let match of this.matches) {
+        match.TimeFields = [];
+
+        const courtSlots = this.timeSlots.filter(
+          (c) => c.CourtId == match.CourtId
+        );
+        for (let slot of courtSlots) {
+          if (slot.Range.intersect(match.TimeRange)) {
+            match.TimeFields.push(slot);
+          }
+        }
+      }
       this.$store.dispatch("setTimeFields", this.timeSlots);
       this.$store.dispatch("setMatches", this.matches);
       this.$store.dispatch("setIsScheduled", true);
       this.$store.dispatch("setClasses", tournament.Classes);
+      this.$store.dispatch("setPlayingDates", tournament.PlayingDates);
 
       for (let court of this.courts) {
         court.Matches = this.matches.filter((c) => c.CourtId == court.Id);

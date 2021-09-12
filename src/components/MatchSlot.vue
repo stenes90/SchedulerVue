@@ -6,6 +6,7 @@
       width: matchWidth,
       backgroundColor: color,
     }"
+    @contextmenu="rightClick"
   >
     <p>{{ time }}</p>
     <p>{{ match.Id }}</p>
@@ -15,6 +16,7 @@
 <script>
 import moment from "moment";
 import { extendMoment } from "moment-range";
+import { mapGetters } from "vuex";
 
 export default {
   props: ["match"],
@@ -29,6 +31,7 @@ export default {
     };
   },
   computed: {
+    ...mapGetters(["getisMatchCoppied"]),
     color() {
       let classs = this.classes.find((c) => c.Id == this.match.ClassId);
       let index = this.classes.indexOf(classs);
@@ -55,6 +58,17 @@ export default {
         (parseInt(this.match.MatchDuration) / 5) *
         parseFloat(timeSlotWidth)
       ).toString() + "vw";
+  },
+  methods: {
+    rightClick(e) {
+      if (!this.getisMatchCoppied) {
+        e.preventDefault();
+        this.$store.dispatch("setShowContextMenu", true);
+        this.$store.dispatch("setSelectedMatch", this.match);
+        this.$store.dispatch("setXpos", e.pageX + "px");
+        this.$store.dispatch("setYpos", e.pageY + "px");
+      } else return;
+    },
   },
 };
 </script>

@@ -8,15 +8,18 @@
     :data-dateId="dateId"
     :data-courtId="courtId"
     :style="{ zIndex: zIndex, width: slotWidthString }"
+    @contextmenu="rightClick"
   >
     {{ slotId }}
   </div>
 </template>
 
 <script>
+import { mapGetters } from "vuex";
 export default {
   props: [
     "slotId",
+    "slott",
     "slotWidthString",
     "zIndex",
     "time",
@@ -25,6 +28,30 @@ export default {
     "courtId",
     "displayed",
   ],
-  created() {},
+  data() {
+    return {
+      isMatchCoppied: false,
+    };
+  },
+  computed: {
+    ...mapGetters(["getisMatchCoppied"]),
+  },
+  created() {
+    this.isMatchCoppied = this.$store.getters["getisMatchCoppied"];
+  },
+  methods: {
+    rightClick(e) {
+      if (this.getisMatchCoppied) {
+        e.preventDefault();
+        this.$store.dispatch("setShowContextMenu", true);
+        this.$store.dispatch("setSelectedTimeslot", this.slott);
+        this.$store.dispatch("setXpos", e.pageX + "px");
+        this.$store.dispatch("setYpos", e.pageY + "px");
+      } else {
+        e.preventDefault();
+        this.$store.dispatch("setShowContextMenu", false);
+      }
+    },
+  },
 };
 </script>

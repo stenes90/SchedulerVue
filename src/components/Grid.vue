@@ -5,14 +5,15 @@
   >
     <Timeslot
       v-for="slot in timeSlots"
-      :key="slot.id"
-      :slotId="slot.id"
-      v-show="slot.displayed"
+      :key="slot.Id"
+      :slott="slot"
+      :slotId="slot.Id"
+      v-show="slot.Displayed"
       :slotWidthString="slotWidthString"
-      :time="slot.time"
-      :index="slot.index"
-      :dateId="slot.dateId"
-      :courtId="slot.courtId"
+      :time="slot.Time"
+      :index="slot.Index"
+      :dateId="slot.DateId"
+      :courtId="slot.CourtId"
     />
   </div>
 </template>
@@ -38,8 +39,8 @@ export default {
     this.timeSlotWidth = this.$store.getters["getFieldWidth"];
     this.timeSlots = this.$store.getters["getTimeFields"];
     this.timeSlots = this.timeSlots
-      .filter((c) => c.dateId == this.date.Id)
-      .filter((d) => d.courtId == this.court.Id);
+      .filter((c) => c.DateId == this.date.Id)
+      .filter((d) => d.CourtId == this.court.Id);
 
     const start = new Date(this.date.StartTime);
     const end = new Date(start);

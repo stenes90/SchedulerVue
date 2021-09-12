@@ -29,7 +29,7 @@ const schedule = (tournament) => {
 
       const timeRange = moment.range(start, end);
       match.TimeRange = timeRange;
-      match.matchScheduleIndex = matchIndex;
+      match.MatchScheduleIndex = matchIndex;
       let nextAvailableTimeForClassMatch = "";
       try {
         let lastScheduledMatches = listOfScheduledMatches.filter(
@@ -123,7 +123,6 @@ const schedule = (tournament) => {
       listOfScheduledMatches.push(match);
     }
   }
-  console.log(matches[3].TimeRange.start.format());
   return matches;
 };
 
