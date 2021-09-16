@@ -1,7 +1,7 @@
 <template>
   <div
     class="row columns timeslots-container"
-    :style="{ width: scrollerWidthString }"
+    :style="{ width: scrollerWidthString, zIndex: gridZindex }"
   >
     <Timeslot
       v-for="slot in timeSlots"
@@ -22,6 +22,7 @@
 import moment from "moment";
 import { extendMoment } from "moment-range";
 import Timeslot from "./Timeslot.vue";
+import { mapState } from "vuex";
 
 export default {
   components: { Timeslot },
@@ -31,8 +32,14 @@ export default {
       timeSlotWidth: null,
       scrollerWidthString: "",
       timeSlots: [],
-      isMatchCoppied: false,
+      //isMatchCoppied: false,
     };
+  },
+  computed: {
+    ...mapState(["isMatchCoppied"]),
+    gridZindex() {
+      return this.isMatchCoppied ? "10" : "0";
+    },
   },
 
   created() {
@@ -63,7 +70,8 @@ export default {
 }
 
 .timeslots-container {
-  height: 10vh;
+  height: 100%;
+  position: absolute;
 }
 
 .container-fluid {

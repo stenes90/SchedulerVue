@@ -20,7 +20,7 @@
           <MatchSlots :date="date" :court="court" />
         </div>
       </div>
-      <ContextMeny match="" timeSlot="" />
+      <ContextMenu match="" timeSlot="" />
     </div>
   </div>
 </template>
@@ -34,9 +34,9 @@ import schedule from "../Schedule.js";
 import ScheduleMixin from "../Mixins/ScheduleMixin.vue";
 import Grid from "./Grid.vue";
 import MatchSlots from "./MatchSlots.vue";
-import ContextMeny from "./ContextMenu.vue";
+import ContextMenu from "./ContextMenu.vue";
 export default {
-  components: { Grid, MatchSlots, ContextMeny },
+  components: { Grid, MatchSlots, ContextMenu },
   mixins: [ScheduleMixin],
   data() {
     return {
@@ -111,3 +111,10 @@ export default {
   },
 };
 </script>
+
+<style>
+.courts-container {
+  height: 10vh;
+  position: relative;
+}
+</style>

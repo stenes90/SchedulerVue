@@ -102,7 +102,7 @@ export default {
       match.EndTime = endTime;
       match.PlayingDate = date;
       match.CourtId = courtId;
-      match.Range = range;
+      match.TimeRange = range;
       match.TimeFields = [];
 
       let checkfields = timeFields.filter(
@@ -113,19 +113,18 @@ export default {
         .filter((d) => d.DateId == match.PlayingDate.Id)
         .filter((c) => c.CourtId == match.CourtId)
         .forEach((timeField) => {
-          if (timeField.Range.intersect(match.Range)) {
+          if (timeField.Range.intersect(match.TimeRange)) {
             match.TimeFields.push(timeField);
           }
         });
 
       coppiedMatchFields.forEach((item) => {
         let field = timeFields.find((c) => c.Id == item.Id);
-        debugger;
         field.Empty = true;
       });
 
       const matchesForCourt = matches.filter(
-        (m) => m.courtId == initialField.courtId
+        (m) => m.CourtId == initialField.CourtId
       );
 
       const firstIntersectedMatch = this.FirstIntersectedMatch(
@@ -232,25 +231,32 @@ export default {
       let intersectedMatches = [];
       let firstIntersectedMatch = null;
       for (let match of matchesForCourt) {
-        if (match.id == coppiedMatch.id) {
+        if (match.Id == coppiedMatch.Id) {
           continue;
         }
-        if (match.range.intersect(coppiedMatch.range)) {
+        if (match.TimeRange.intersect(coppiedMatch.TimeRange)) {
           intersectedMatches.push(match);
         }
       }
       //timefields for intersected matches
       let timefields = [];
       for (let item of intersectedMatches) {
-        for (let field of item.timeFields) {
+        for (let field of item.TimeFields) {
           timefields.push(field);
         }
       }
 
       if (timefields.length > 0) {
-        const smallestTimeField = Math.min(...timefields);
+        const smallestTimeFieldId = Math.min.apply(
+          null,
+          timefields.map((item) => item.Id)
+        );
+        const smallestTimeField = timefields.find(
+          (c) => c.Id == smallestTimeFieldId
+        );
+        //Math.min.apply(null, timefields.map(item => item.Id))
         firstIntersectedMatch = intersectedMatches.find((t) =>
-          t.timeFields.includes(smallestTimeField)
+          t.TimeFields.includes(smallestTimeField)
         );
       }
       return firstIntersectedMatch;
@@ -258,19 +264,22 @@ export default {
 
     Movement(intersectedMatch, coppiedMatch) {
       let movement = 0;
-      const matchTimeFieldsCount = intersectedMatch.timeFields.length;
-      if (coppiedMatch.timeFields[0] < intersectedMatch.timeFields[0]) {
+      const matchTimeFieldsCount = intersectedMatch.TimeFields.length;
+      if (coppiedMatch.TimeFields[0].Id < intersectedMatch.TimeFields[0].Id) {
         movement =
-          coppiedMatch.timeFields[coppiedMatch.timeFields.length - 1] -
-          intersectedMatch.timeFields[0] +
+          coppiedMatch.TimeFields[coppiedMatch.TimeFields.length - 1].Id -
+          intersectedMatch.TimeFields[0].Id +
           1;
-      } else if (coppiedMatch.timeFields[0] == intersectedMatch.timeFields[0]) {
-        movement = coppiedMatch.timeFields.length;
+      } else if (
+        coppiedMatch.TimeFields[0].Id == intersectedMatch.TimeFields[0].Id
+      ) {
+        movement = coppiedMatch.TimeFields.length;
       } else {
         movement =
-          coppiedMatch.timeFields[coppiedMatch.timeFields.length - 1] -
-          intersectedMatch.timeFields[intersectedMatch.timeFields.length - 1] +
-          intersectedMatch.timeFields.length;
+          coppiedMatch.TimeFields[coppiedMatch.TimeFields.length - 1].Id -
+          intersectedMatch.TimeFields[intersectedMatch.TimeFields.length - 1]
+            .Id +
+          intersectedMatch.TimeFields.length;
       }
       return movement;
     },

@@ -26,7 +26,8 @@ export default {
 </script>
 
 <style>
-.courts-container {
-  position: relative;
+.matches-container {
+  position: absolute;
+  height: 100%;
 }
 </style>
