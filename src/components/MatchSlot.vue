@@ -1,5 +1,8 @@
 <template>
   <div
+    draggable="true"
+    @dragstart="startDrag($event, match)"
+    @dragend="endDrag($event, match)"
     class="match match-slot"
     :style="{
       left: matchPositionLeft,
@@ -72,6 +75,29 @@ export default {
         this.$store.dispatch("setXpos", e.pageX + "px");
         this.$store.dispatch("setYpos", e.pageY + "px");
       } else return;
+    },
+    // startDrag(e, match) {
+    //   this.$store.dispatch("setIsMatchCoppied", true);
+    //   this.$store.dispatch("setCoppiedMatch", match);
+    // },
+    startDrag(e, match) {
+      console.log("drag start");
+      console.log(e);
+
+      const ghost = e.srcElement;
+
+      e.dataTransfer.setDragImage(ghost, 5, 50);
+      // console.log(ghost);
+      //ghost.style.backgroundColor = "green";
+      setTimeout(() => {
+        this.$store.dispatch("setIsMatchCoppied", true);
+      }, 100);
+      this.$store.dispatch("setCoppiedMatch", match);
+    },
+    endDrag(e, match) {
+      console.log("drag end");
+      this.$store.dispatch("setIsMatchCoppied", false);
+      this.$store.dispatch("setCoppiedMatch", null);
     },
   },
 };

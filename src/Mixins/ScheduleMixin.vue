@@ -78,7 +78,6 @@ export default {
       this.$store.dispatch("setShowContextMenu", false);
     },
     pasteMatch(timeSlot) {
-      debugger;
       const moment = extendMoment(Moment);
       let coppiedMatch = this.$store.getters["getCoppiedMatch"];
       let playingDates = this.$store.getters["playingDates"];

@@ -28,10 +28,7 @@ export default {
         .filter((d) => d.CourtId == this.court.Id);
     },
   },
-  updated() {
-    debugger;
-    console.log(this.matchesForDateAndCourt);
-  },
+
   // mounted() {
   //   console.log(this.matchesForDateAndCourt);
   //   debugger;

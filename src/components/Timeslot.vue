@@ -1,5 +1,8 @@
 <template>
   <div
+    @drop="onDrop($event, slott)"
+    @dragenter.prevent
+    @dragover.prevent
     v-show="displayed"
     class="timeslot"
     :data-slotId="slotId"
@@ -16,7 +19,9 @@
 
 <script>
 import { mapGetters } from "vuex";
+import ScheduleMixin from "../Mixins/ScheduleMixin.vue";
 export default {
+  mixins: [ScheduleMixin],
   props: [
     "slotId",
     "slott",
@@ -51,6 +56,9 @@ export default {
         e.preventDefault();
         this.$store.dispatch("setShowContextMenu", false);
       }
+    },
+    onDrop(e, slot) {
+      this.pasteMatch(slot);
     },
   },
 };
