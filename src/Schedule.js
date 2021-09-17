@@ -120,6 +120,7 @@ const schedule = (tournament) => {
       match.MatchDuration = matchClass.MatchDuration;
       match.IsScheduled = true;
       match.TimeRange = moment.range(match.StartTime, match.EndTime);
+      match.Updater = match.Id;
       listOfScheduledMatches.push(match);
     }
   }

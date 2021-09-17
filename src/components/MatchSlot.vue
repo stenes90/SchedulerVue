@@ -43,6 +43,7 @@ export default {
   },
 
   created() {
+    console.log("created");
     this.classes = this.$store.getters["getClasses"];
     this.matchStartTime = moment(this.match.StartTime);
     this.dateStartTime = moment(this.match.PlayingDate.StartTime);
@@ -58,6 +59,9 @@ export default {
         (parseInt(this.match.MatchDuration) / 5) *
         parseFloat(timeSlotWidth)
       ).toString() + "vw";
+  },
+  updated() {
+    console.log("updated");
   },
   methods: {
     rightClick(e) {

@@ -2,6 +2,7 @@
 import tournament from "../../tournament.json";
 import Moment from "moment";
 import { extendMoment } from "moment-range";
+import { mapState } from "vuex";
 export default {
   methods: {
     timeFieldWidth(classes) {
@@ -94,27 +95,24 @@ export default {
 
       const courtId = initialField.CourtId;
       let tn = null; //need to be improved
-      let match = { ...coppiedMatch };
+      //let match = { ...coppiedMatch };
       // let match = state.tournament.matches.find(
       //   (m) => m.id == state.coppiedMatch.id
       // );
-      match.StartTime = startTime;
-      match.EndTime = endTime;
-      match.PlayingDate = date;
-      match.CourtId = courtId;
-      match.TimeRange = range;
-      match.TimeFields = [];
+      coppiedMatch.StartTime = startTime;
+      coppiedMatch.EndTime = endTime;
+      coppiedMatch.PlayingDate = date;
+      coppiedMatch.CourtId = courtId;
+      coppiedMatch.TimeRange = range;
+      coppiedMatch.TimeFields = [];
+      coppiedMatch.Updater = coppiedMatch.Updater + 1000;
 
-      let checkfields = timeFields.filter(
-        (d) => d.DateId == match.PlayingDate.Id
-      );
-      let checkfields2 = checkfields.filter((c) => c.CourtId == match.CourtId);
       timeFields
-        .filter((d) => d.DateId == match.PlayingDate.Id)
-        .filter((c) => c.CourtId == match.CourtId)
+        .filter((d) => d.DateId == coppiedMatch.PlayingDate.Id)
+        .filter((c) => c.CourtId == coppiedMatch.CourtId)
         .forEach((timeField) => {
-          if (timeField.Range.intersect(match.TimeRange)) {
-            match.TimeFields.push(timeField);
+          if (timeField.Range.intersect(coppiedMatch.TimeRange)) {
+            coppiedMatch.TimeFields.push(timeField);
           }
         });
 
@@ -128,73 +126,73 @@ export default {
       );
 
       const firstIntersectedMatch = this.FirstIntersectedMatch(
-        match,
+        coppiedMatch,
         matchesForCourt
       );
       let movement = 0;
       if (firstIntersectedMatch) {
-        movement = this.Movement(firstIntersectedMatch, match);
+        movement = this.Movement(firstIntersectedMatch, coppiedMatch);
       }
       if (firstIntersectedMatch) {
         for (let i = matchesForCourt.length - 1; i >= 0; i--) {
           let match = matchesForCourt[i];
-          if (match.id == coppiedMatch.id) {
+          if (match.Id == coppiedMatch.Id) {
             continue;
           }
           let emptyFields = timeFields
-            .filter((d) => d.dateId == match.playingDate.id)
-            .filter((c) => c.courtId == match.courtId)
-            .filter((e) => e.empty == true)
-            .filter((f) => f.id < match.timeFields[0])
+            .filter((d) => d.DateId == match.PlayingDate.Id)
+            .filter((c) => c.CourtId == match.CourtId)
+            .filter((e) => e.Empty == true)
+            .filter((f) => f.Id < match.TimeFields[0].Id)
             .filter(
               (g) =>
-                g.id >
-                firstIntersectedMatch.timeFields[
-                  firstIntersectedMatch.timeFields.length - 1
-                ]
+                g.Id >
+                firstIntersectedMatch.TimeFields[
+                  firstIntersectedMatch.TimeFields.length - 1
+                ].Id
             );
           if (
             emptyFields.length < movement &&
-            match.timeFields[0] >= firstIntersectedMatch.timeFields[0]
+            match.TimeFields[0].Id >= firstIntersectedMatch.TimeFields[0].Id
           ) {
             let moveMinutes = (movement - emptyFields.length) * 5;
-            let startTime = new Date(match.startTime);
+            let startTime = new Date(match.StartTime);
             startTime = new Date(startTime.getTime() + moveMinutes * 60000);
-            let endTime = new Date(match.endTime);
+            let endTime = new Date(match.EndTime);
             endTime = new Date(endTime.getTime() + moveMinutes * 60000);
             const range = moment.range(startTime, endTime);
-            match.startTime = startTime;
-            match.endTime = endTime;
-            match.range = range;
+            match.StartTime = startTime;
+            match.EndTime = endTime;
+            match.TimeRange = range;
+            match.Updater = match.Updater + 1000;
           }
         }
       }
 
       matchesForCourt.forEach((match) => {
-        match.timeFields = [];
-        timeFields
-          .filter((d) => d.dateId == match.playingDate.id)
-          .filter((c) => c.courtId == match.courtId)
-          .forEach((timeField) => {
-            if (timeField.range.intersect(match.range)) {
-              match.timeFields.push(timeField.id);
-            }
-          });
+        match.TimeFields = [];
+        const timeFieldsForDateAndCourt = timeFields
+          .filter((d) => d.DateId == match.PlayingDate.Id)
+          .filter((c) => c.CourtId == match.CourtId);
+        timeFieldsForDateAndCourt.forEach((timeField) => {
+          if (timeField.Range.intersect(match.TimeRange)) {
+            match.TimeFields.push(timeField);
+          }
+        });
       });
 
       const busyTimeFields = [];
       matchesForCourt.forEach((match) => {
-        busyTimeFields.push(...match.timeFields);
+        busyTimeFields.push(...match.TimeFields);
       });
-
       const timeFieldsForCourt = timeFields
-        .filter((c) => c.courtId == coppiedMatch.courtId)
-        .filter((d) => d.dateId == coppiedMatch.playingDate.id);
+        .filter((c) => c.CourtId == coppiedMatch.CourtId)
+        .filter((d) => d.DateId == coppiedMatch.PlayingDate.Id);
       for (let field of timeFieldsForCourt) {
-        if (busyTimeFields.includes(field.id)) {
-          field.empty = false;
+        if (busyTimeFields.includes(field)) {
+          field.Empty = false;
         } else {
-          field.empty = true;
+          field.Empty = true;
         }
       }
 
@@ -218,13 +216,13 @@ export default {
       //   coppiedMatch: null,
       //   isMatchCoppied: false,
       // });
-
+      console.log(matches);
+      //this.$store.dispatch("setMatches", matches);
       this.$store.dispatch("setIsMatchCoppied", false);
       this.$store.dispatch("setCoppiedMatch", null);
       this.$store.dispatch("setShowContextMenu", false);
       this.$store.dispatch("setSelectedMatch", null);
       console.log("pasted at timeslot");
-      console.log(timeSlot);
     },
 
     FirstIntersectedMatch(coppiedMatch, matchesForCourt) {
