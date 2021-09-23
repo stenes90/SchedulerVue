@@ -6,12 +6,13 @@ export const store = createStore({
       matches: [],
       classes: [],
       playingDates: [],
+      courts: [],
       isScheduled: false,
       fieldWidth: null,
       timeFields: [],
       coppiedMatch: null,
       selectedTimeslot: null,
-      selectedMatch: null,
+      selectedMatch: [],
       isMatchCoppied: false,
       activeVersion: 0,
       showContextMenu: false,
@@ -30,6 +31,9 @@ export const store = createStore({
     },
     setPlayingDates(state, payload) {
       state.playingDates = payload;
+    },
+    setCourts(state, payload) {
+      state.courts = payload;
     },
     setIsScheduled(state, payload) {
       state.isScheduled = payload;
@@ -73,6 +77,9 @@ export const store = createStore({
     setPlayingDates(context, payload) {
       context.commit("setPlayingDates", payload);
     },
+    setCourts(context, payload) {
+      context.commit("setCourts", payload);
+    },
     setIsScheduled(context, payload) {
       context.commit("setIsScheduled", payload);
     },
@@ -114,6 +121,9 @@ export const store = createStore({
     },
     playingDates(state) {
       return state.playingDates;
+    },
+    courts(state) {
+      return state.courts;
     },
     getIsScheduled(state) {
       return state.isScheduled;

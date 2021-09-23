@@ -22,6 +22,7 @@
       </div>
       <ContextMenu match="" timeSlot="" />
     </div>
+    <!-- <div class="ghosts"></div> -->
   </div>
 </template>
 
@@ -47,6 +48,7 @@ export default {
       timeSlotWidth: "",
       slotWidthString: "",
       timeSlots: [],
+      dragActive: false,
     };
   },
   created() {
@@ -56,8 +58,9 @@ export default {
     this.timeSlotWidth = this.timeFieldWidth(tournament.Classes);
     this.slotWidthString = this.timeSlotWidth.toString() + "vw";
     this.$store.dispatch("setFieldWidth", this.timeSlotWidth);
-
+    this.$store.dispatch("setCourts", tournament.Courts);
     console.log(tournament);
+    this.dragActive = this.$store.getters["getShowContextMenu"];
   },
   methods: {
     scheduleMatches() {
@@ -117,4 +120,9 @@ export default {
   height: 10vh;
   position: relative;
 }
+
+/* .ghosts {
+  position: absolute;
+  z-index: 999999999;
+} */
 </style>

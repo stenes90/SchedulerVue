@@ -56,7 +56,7 @@ export default {
             timeSlots.push({
               Id: counter,
               Time: initialTime.format(),
-              Index: counter,
+              Index: i,
               DateId: date.Id,
               CourtId: court.Id,
               Range: range,
