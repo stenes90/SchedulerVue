@@ -1,7 +1,7 @@
 <template>
   <div
     class="row columns timeslots-container"
-    :style="{ width: scrollerWidthString, zIndex: gridZindex }"
+    :style="{ width: scrollerWidthString }"
   >
     <Timeslot
       v-for="slot in timeSlots"
@@ -11,7 +11,8 @@
       v-show="slot.Displayed"
       :slotWidthString="slotWidthString"
       :time="slot.Time"
-      :index="slot.Index"
+      :index="slot.DateIndex"
+      :totalIndex="slot.TotalIndex"
       :dateId="slot.DateId"
       :courtId="slot.CourtId"
     />
@@ -35,10 +36,28 @@ export default {
       //isMatchCoppied: false,
     };
   },
+  updated() {
+    console.log("grid updated");
+  },
   computed: {
     ...mapState(["isMatchCoppied"]),
     gridZindex() {
+      debugger;
+      const zIndex = this.isMatchCoppied ? "10" : "0";
+      const gridContainers = document.querySelectorAll(".timeslots-container");
+      for (let grid of gridContainers) {
+        grid.style.zIndex = zIndex;
+      }
       return this.isMatchCoppied ? "10" : "0";
+    },
+  },
+  watch: {
+    isMatchCoppied() {
+      const zIndex = this.isMatchCoppied ? "10" : "0";
+      const gridContainers = document.querySelectorAll(".timeslots-container");
+      for (let grid of gridContainers) {
+        grid.style.zIndex = zIndex;
+      }
     },
   },
 

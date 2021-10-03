@@ -4,7 +4,8 @@ import { extendMoment } from "moment-range";
 const schedule = (tournament) => {
   const moment = extendMoment(Moment);
   let matches = tournament.Matches;
-
+  matches.sort((a, b) => (a.Round > b.Round ? 1 : b.Round > a.Round ? -1 : 0));
+  debugger;
   for (let i = 0; i < matches.length; i++) {
     matches[i].Id = i + 1;
   }
@@ -18,18 +19,14 @@ const schedule = (tournament) => {
     scheduledMatches = matches.filter((c) => c.IsScheduled == true);
     notScheduledMatches = matches.filter((c) => c.IsScheduled == false);
     let listOfCourts = actualDate.Courts;
-    let endTime = actualDate.EndTime;
-    let matchIndex = 0;
 
     for (let match of notScheduledMatches) {
-      matchIndex++;
       let matchClass = tournament.Classes.find((c) => c.Id == match.ClassId);
       const start = new Date(0, 0, 0, 0, 0, 0);
       const end = new Date(0, 0, 0, 0, 0, 0);
 
       const timeRange = moment.range(start, end);
       match.TimeRange = timeRange;
-      match.MatchScheduleIndex = matchIndex;
       let nextAvailableTimeForClassMatch = "";
       try {
         let lastScheduledMatches = listOfScheduledMatches.filter(

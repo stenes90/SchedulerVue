@@ -2,7 +2,6 @@
   <div
     draggable="true"
     @dragstart="startDrag($event, match)"
-    @drag="drag($event)"
     @dragend="endDrag($event, match)"
     class="match match-slot"
     :data-matchId="match.Id"
@@ -18,10 +17,12 @@
         class="form-check-input"
         type="checkbox"
         @click="addToSelectedMatches"
+        :checked="matchChecked"
       />
     </div>
     <p>{{ time }}</p>
-    <p>{{ match.Id }}</p>
+    <p>Id: {{ match.Id }}</p>
+    <p>Round: {{ match.Round }}</p>
   </div>
 </template>
 
@@ -29,18 +30,20 @@
 import moment from "moment";
 import { extendMoment } from "moment-range";
 import { mapGetters, mapState } from "vuex";
+import scheduleMixin from "../Mixins/ScheduleMixin.vue";
 
 export default {
+  mixins: [scheduleMixin],
   props: ["match"],
   data() {
     return {
       classes: [],
+      dragStarted: false,
       matchStartTime: "",
       dateStartTime: "",
       matchPositionLeft: "",
       matchWidth: "",
       colors: ["#034f84", "#c94c4c", "#50394c", "#b1cbbb", "#4040a1"],
-      selectedMatches: [],
     };
   },
   computed: {
@@ -54,12 +57,14 @@ export default {
     time() {
       return moment(this.matchStartTime).format("LT");
     },
+    matchChecked() {
+      return this.coppiedMatch.includes(this.match);
+    },
   },
 
   created() {
-    console.log("created");
     this.classes = this.$store.getters["getClasses"];
-    this.selectedMatches = this.$store.getters["getSelectedMatch"];
+
     this.matchStartTime = moment(this.match.StartTime);
     this.dateStartTime = moment(this.match.PlayingDate.StartTime);
     const timeSlotWidth = this.$store.getters["getFieldWidth"];
@@ -76,8 +81,9 @@ export default {
       ).toString() + "vw";
   },
   updated() {
-    console.log("updated");
+    console.log(this.match);
   },
+
   methods: {
     // rightClick(e) {
     //   if (!this.getisMatchCoppied) {
@@ -90,52 +96,68 @@ export default {
     // },
 
     addToSelectedMatches() {
-      if (this.selectedMatches.includes(this.match)) {
-        this.selectedMatches = this.selectedMatches.filter(
+      let selectedMatchess = this.coppiedMatch;
+      if (this.coppiedMatch.includes(this.match)) {
+        selectedMatchess = selectedMatchess.filter(
           (c) => c.Id != this.match.Id
         );
       } else {
-        this.selectedMatches.push(this.match);
+        selectedMatchess.push(this.match);
       }
-      this.$store.dispatch("setCoppiedMatch", this.selectedMatches);
+      this.$store.dispatch("setCoppiedMatch", selectedMatchess);
       let kopiranite = this.$store.getters["getCoppiedMatch"];
       console.log(kopiranite);
     },
 
     startDrag(e, match) {
       console.log("drag start");
-      console.log(e);
-      if (this.coppiedMatch.length == 1) {
-        const ghost = e.srcElement;
-        e.dataTransfer.setDragImage(ghost, 5, 50);
 
-        setTimeout(() => {
-          this.$store.dispatch("setIsMatchCoppied", true);
-        }, 10);
+      console.log(e);
+
+      e.dataTransfer.effectAllowed = "move";
+
+      this.dragStarted = true;
+
+      if (this.coppiedMatch.length == 1) {
+        e.dataTransfer.setDragImage(new Image(), 0, 0);
+        const matchEl = document.querySelector(
+          `div[data-matchId='${this.coppiedMatch[0].Id}']`
+        );
+        const parent = document.querySelector(".roditel");
+        const coppiedMatchEl = matchEl.cloneNode(true);
+        coppiedMatchEl.style.top = 0 + "px";
+        coppiedMatchEl.style.left = 0 + "px";
+        parent.appendChild(coppiedMatchEl);
+
+        //e.dataTransfer.setData("firstMatch", this.coppiedMatch[0].Id);
+
+        this.$store.dispatch("setIsMatchCoppied", true);
+        console.log("coppied true");
+
+        e.preventDefault();
+        document.addEventListener("mouseup", (e) => {
+          if (!this.dragStarted) {
+            return;
+          }
+          if (e.target.className != "timeslot") {
+            console.log("drop unsuccessful");
+            this.$store.dispatch("setIsMatchCoppied", false);
+
+            while (parent.firstChild) {
+              parent.removeChild(parent.firstChild);
+            }
+          } else {
+            const slotId = e.target.dataset.slotid;
+            const timeFields = this.$store.getters["getTimeFields"];
+            const slot = timeFields.find((c) => c.Id == slotId);
+            this.onDrop(slot, this.coppiedMatch[0].Id);
+            while (parent.firstChild) {
+              parent.removeChild(parent.firstChild);
+            }
+          }
+        });
       } else if (this.coppiedMatch.length > 1) {
-        // let courtIdForFirstSelectedMatch = null;
-        // for (let court of this.courts) {
-        //   if (courtIdForFirstSelectedMatch != null) {
-        //     break;
-        //   }
-        //   for (let item of this.coppiedMatch) {
-        //     if (item.CourtId == court.Id) {
-        //       courtIdForFirstSelectedMatch = item.CourtId;
-        //       break;
-        //     }
-        //   }
-        // }
-        // console.log(courtIdForFirstSelectedMatch);
-        // const selectedMatchesForCourt = this.selectedMatches.filter(
-        //   (c) => c.CourtId == courtIdForFirstSelectedMatch
-        // );
-        // for (let item of selectedMatchesForCourt) {
-        //   item.StartTime = new Date(item.StartTime);
-        // }
-        // const sortedSelectedMatchesForCourt = selectedMatchesForCourt.sort(
-        //   (a, b) => a.StartTime - b.StartTime
-        // );
-        // let firstMatch = sortedSelectedMatchesForCourt[0];
+        this.$store.dispatch("setIsMatchCoppied", true);
 
         // let parent = document.createElement("div");
         // parent.className = "roditel";
@@ -143,60 +165,20 @@ export default {
         // parent.style.position = "fixed";
         // const body = document.querySelector("body");
         // body.appendChild(parent);
+        const parent = document.querySelector(".roditel");
 
-        let parent = document.createElement("div");
-        parent.className = "roditel";
-        parent.draggable = true;
-        parent.style.position = "fixed";
-        const body = document.querySelector("body");
-        body.appendChild(parent);
-
-        this.$store.dispatch("setShowContextMenu", true);
-
-        // let relativeMatch = document.querySelector(
-        //   `div[data-matchId='${firstMatch.Id}']`
-        // );
-        // for (let item of this.selectedMatches) {
-        //   item.StartTime = new Date(item.StartTime);
-        // }
-        // const sortedSelectedMatches = this.selectedMatches.sort(
-        //   (a, b) => a.StartTime - b.StartTime
-        // );
-        // let date = sortedSelectedMatches[0].StartTime;
-        // let matchesWithSameDate = [];
-        // for (let item of this.selectedMatches) {
-        //   if (item.StartTime == date) {
-        //     matchesWithSameDate.push(item);
-        //   }
-        // }
-        // let smallestIndexes = [];
-        // for (let item of matchesWithSameDate) {
-        //   let court = this.courts.find((c) => c.Id == item.CourtId);
-        //   let ind = this.courts.indexOf(court);
-        //   smallestIndexes.push(ind);
-        // }
-
-        // let smallestIndex = Math.min(smallestIndexes);
-        // let index = smallestIndexes.indexOf(smallestIndex);
-        // firstMatch = matchesWithSameDate[index];
-
-        // let courtForFirstMatch = this.courts.find(
-        //   (c) => c.Id == firstMatch.CourtId
-        // );
-        // console.log(courtForFirstMatch);
-        // let ind = this.courts.indexOf(courtForFirstMatch);
         let timefieldIdsForSelectedMatches = [];
         let timefieldsForSelectedMatches = [];
 
-        for (let match of this.selectedMatches) {
+        for (let match of this.coppiedMatch) {
           for (let field of match.TimeFields) {
-            timefieldIdsForSelectedMatches.push(field.Index);
+            timefieldIdsForSelectedMatches.push(field.DateIndex);
             timefieldsForSelectedMatches.push(field);
           }
         }
         let smallestFieldId = Math.min(...timefieldIdsForSelectedMatches);
         let smallestFields = timefieldsForSelectedMatches.filter(
-          (c) => c.Index == smallestFieldId
+          (c) => c.DateIndex == smallestFieldId
         );
         let smallestField = smallestFields[0];
         if (smallestFields.length > 1) {
@@ -206,9 +188,11 @@ export default {
             }
           }
         }
-        let firstMatch = this.selectedMatches.find((c) =>
+        let firstMatch = this.coppiedMatch.find((c) =>
           c.TimeFields.includes(smallestField)
         );
+
+        //e.dataTransfer.setData("firstMatch", firstMatch.Id);
 
         let courtForFirstMatch = this.courts.find(
           (c) => c.Id == firstMatch.CourtId
@@ -216,7 +200,7 @@ export default {
         let ind = this.courts.indexOf(courtForFirstMatch);
 
         const courtIndexesForSelectedMatches = [];
-        for (let item of this.selectedMatches) {
+        for (let item of this.coppiedMatch) {
           let court = this.courts.find((c) => c.Id == item.CourtId);
           let ind = this.courts.indexOf(court);
 
@@ -226,7 +210,6 @@ export default {
 
         // let courtsUp = ind - smallestCourtIndex;
         let courtsUp = ind;
-        console.log(courtIndexesForSelectedMatches);
         let firstMatchDiv = document.querySelector(
           `div[data-matchid='${firstMatch.Id}']`
         );
@@ -255,7 +238,6 @@ export default {
             let index = this.courts.indexOf(court);
             let top = 10 * index;
             top = top - courtsUp * 10;
-            debugger;
             const topString = top.toString() + "vh";
             coppiedMatchEl.style.top = topString;
             let coppiedLeft = coppiedMatchEl.style.left;
@@ -267,56 +249,60 @@ export default {
             parent.appendChild(coppiedMatchEl);
           }
         }
-        let img = new Image();
-        e.dataTransfer.setDragImage(new Image(), 5, 50);
+        e.dataTransfer.setDragImage(new Image(), 0, 0);
+        e.preventDefault();
+        document.addEventListener("mouseup", (e) => {
+          if (!this.dragStarted) {
+            return;
+          }
+          if (e.target.className != "timeslot") {
+            console.log("drop unsuccessful");
+            this.$store.dispatch("setIsMatchCoppied", false);
 
-        console.log(parent);
-
-        // document.addEventListener("mousemove", function(e) {
-        //   let left = e.clientX;
-        //   let top = e.clientY;
-        //   let parent = document.querySelector(".roditel");
-        //   parent.style.left = left + "px";
-        //   parent.style.top = top + "px";
-        //   console.log(e);
-        //   console.log(parent);
-        //   console.log("c");
-        // });
-
-        // for (let item of this.selectedMatches) {
-        //   const el = document.querySelector(`div[data-matchId='${item.Id}']`);
-        //   const copy = el.cloneNode(true);
-        //   copy.draggable = false;
-        //   parent.appendChild(copy);
-        // }
-        // parent.draggable = true;
-        // parent.style.height = "100vh";
-        // parent.style.width = "100 vw";
-        // parent.style.backgroundColor = "white";
-        // let ghostsDiv = document.querySelector(".ghosts");
-        // ghostsDiv.appendChild(parent);
-        // console.log(parent);
-        // e.dataTransfer.setDragImage(parent, 5, 50);
-        // setTimeout(() => {
-        //   ghostsDiv.removeChild(parent);
-        //   console.log("after timeout");
-        // }, 15000);
-        // console.log("gangam");
+            while (parent.firstChild) {
+              parent.removeChild(parent.firstChild);
+            }
+          } else {
+            const slotId = e.target.dataset.slotid;
+            const timeFields = this.$store.getters["getTimeFields"];
+            const slot = timeFields.find((c) => c.Id == slotId);
+            this.onDrop(slot, firstMatch.Id);
+            while (parent.firstChild) {
+              parent.removeChild(parent.firstChild);
+            }
+          }
+        });
       }
-      // this.$store.dispatch("setCoppiedMatch", match);
     },
-    drag(e) {
-      let left = e.clientX;
-      let top = e.clientY;
-      let parent = document.querySelector(".roditel");
-      parent.style.left = left + "px";
-      parent.style.top = top + "px";
+    // drag(e) {
+    //   console.log(e);
+    // },
+    onDrop(slot, firstMatchId) {
+      console.log("dropped");
+      this.pasteMatch(slot, firstMatchId);
+      this.dragStarted = false;
     },
-    endDrag(e, match) {
-      console.log("drag end");
-      this.$store.dispatch("setIsMatchCoppied", false);
-      this.$store.dispatch("setCoppiedMatch", null);
-    },
+    // endDrag(e, match) {
+    //   console.log("drag end");
+    //   console.log(e);
+
+    //   if (e.dataTransfer.dropEffect == "none") {
+    //     this.$store.dispatch("setIsMatchCoppied", false);
+    //   } else {
+    //     this.$store.dispatch("setIsMatchCoppied", false);
+    //     this.$store.dispatch("setCoppiedMatch", []);
+    //     //this.$store.dispatch("setSelectedMatch", []);
+    //   }
+    //   while (parent.firstChild) {
+    //     parent.removeChild(parent.firstChild);
+    //   }
+    // setTimeout(() => {
+    //   let parent = document.querySelector(".roditel");
+    //   parent.remove();
+    // }, 10);
+    // this.$store.dispatch("setIsMatchCoppied", false);
+    // this.$store.dispatch("setCoppiedMatch", null);
+    //},
   },
 };
 </script>
@@ -328,6 +314,14 @@ export default {
   top: 0;
   border: 1px black solid;
   height: 10vh;
+}
+
+.match input:hover {
+  cursor: pointer;
+}
+
+.match:hover {
+  cursor: grab;
 }
 
 .match p {

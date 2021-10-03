@@ -10,7 +10,7 @@ export const store = createStore({
       isScheduled: false,
       fieldWidth: null,
       timeFields: [],
-      coppiedMatch: null,
+      coppiedMatch: [],
       selectedTimeslot: null,
       selectedMatch: [],
       isMatchCoppied: false,
@@ -65,6 +65,9 @@ export const store = createStore({
     setYpos(state, payload) {
       state.yPos = payload;
     },
+    setVersions(state, payload) {
+      state.versions = payload;
+    },
   },
 
   actions: {
@@ -110,6 +113,9 @@ export const store = createStore({
     setYpos(context, payload) {
       context.commit("setYpos", payload);
     },
+    setVersions(context, payload) {
+      context.commit("setVersions", payload);
+    },
   },
 
   getters: {
@@ -154,6 +160,9 @@ export const store = createStore({
     },
     getYpos(state) {
       return state.yPos;
+    },
+    getVersions(state) {
+      return state.versions;
     },
   },
 });

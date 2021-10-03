@@ -44,6 +44,9 @@ export default {
   created() {
     this.isMatchCoppied = this.$store.getters["getisMatchCoppied"];
   },
+  updated() {
+    console.log("timeslot updated");
+  },
   methods: {
     rightClick(e) {
       if (this.getisMatchCoppied) {
@@ -57,9 +60,18 @@ export default {
         this.$store.dispatch("setShowContextMenu", false);
       }
     },
-    onDrop(e, slot) {
-      this.pasteMatch(slot);
-    },
+    // onDrop(e, slot) {
+    //   console.log("dropped");
+    //   console.log(e);
+    //   const firstMatch = e.dataTransfer.getData("firstMatch");
+    //   this.pasteMatch(slot, firstMatch);
+    // },
   },
 };
 </script>
+
+<style scoped>
+.timeslot {
+  font-size: 5px;
+}
+</style>
