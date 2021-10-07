@@ -3,22 +3,30 @@
     <button @click="scheduleMatches">Schedule Matches</button>
     <button @click="undoVersion">Undo</button>
     <div class="time" v-if="isScheduled">
-      <div
-        class="date-container container-fluid container-scroll"
-        v-for="date in dates"
-        :key="date.Id"
-      >
-        <div
-          class="courts-container"
-          v-for="court in date.Courts"
-          :key="court.Id"
-        >
-          <Grid
-            :date="date"
-            :court="court"
-            :slotWidthString="slotWidthString"
-          />
-          <MatchSlots :date="date" :court="court" />
+      <div class="date-container" v-for="date in dates" :key="date.Id">
+        <div class="court-info">
+          <div class="date">
+            <p>{{ date.StartTime.toDateString().slice(0, -5) }}</p>
+          </div>
+          <div class="court" v-for="court in date.Courts" :key="court.Id">
+            <p>{{ court.Name }}</p>
+          </div>
+        </div>
+        <div class="container-fluid container-scroll">
+          <TimeBar :date="date" />
+          <div
+            class="courts-container"
+            v-for="(court, index) in date.Courts"
+            :key="court.Id"
+          >
+            <Grid
+              :date="date"
+              :court="court"
+              :gridIndex="index"
+              :slotWidthString="slotWidthString"
+            />
+            <MatchSlots :date="date" :court="court" />
+          </div>
         </div>
       </div>
       <ContextMenu match="" timeSlot="" />
@@ -36,9 +44,11 @@ import ScheduleMixin from "../Mixins/ScheduleMixin.vue";
 import Grid from "./Grid.vue";
 import MatchSlots from "./MatchSlots.vue";
 import ContextMenu from "./ContextMenu.vue";
+import TimeBar from "./TimeBar.vue";
 import axios from "axios";
+import _ from "lodash";
 export default {
-  components: { Grid, MatchSlots, ContextMenu },
+  components: { Grid, MatchSlots, ContextMenu, TimeBar },
   mixins: [ScheduleMixin],
   data() {
     return {
@@ -164,29 +174,34 @@ export default {
   },
   methods: {
     undoVersion() {
-      const prevVersion = this.scheduleVersions[
-        this.scheduleVersions.length - 1
-      ];
+      const activeVersionId = this.$store.getters["getActiveVersion"];
+      const prevVersion = this.scheduleVersions.find(
+        (c) => c.id == activeVersionId - 1
+      );
       debugger;
       this.$store.dispatch("setMatches", prevVersion.matches);
       this.$store.dispatch("setTimeFields", prevVersion.timefields);
-      console.log(prevVersion.matches);
+      this.$store.dispatch("setActiveVersion", activeVersionId - 1);
+
+      console.log(prevVersion.matches[0].StartTime);
     },
     scheduleMatches() {
       //this.matches = schedule(tournament);
-      console.log(this.parsedObject);
+      //console.log(this.parsedObject);
       debugger;
       this.matches = schedule(this.parsedObject);
       this.isScheduled = true;
       //this.timeSlots = this.timeFields(tournament.PlayingDates, this.matches);
       this.timeSlots = this.timeFields(this.dates, this.matches);
-      console.log(this.matches[0].StartTime);
-      this.scheduleVersions.push({
+      const version = _.cloneDeep({
         id: 0,
-        matches: [...this.matches],
-        timefields: [...this.timeSlots],
+        matches: this.matches,
+        timefields: this.timeSlots,
       });
+      this.scheduleVersions.push(version);
+      debugger;
       this.$store.dispatch("setVersions", this.scheduleVersions);
+      console.log(this.$store.getters["getVersions"]);
       this.activeVersion = 0;
       for (let match of this.matches) {
         match.TimeFields = [];
@@ -226,5 +241,36 @@ export default {
 .courts-container {
   height: 10vh;
   position: relative;
+}
+
+.date-container {
+  display: flex;
+  margin: 10px;
+}
+
+.court-info {
+  width: 8vw;
+}
+
+.court-info div.court {
+  height: 10vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px white ridge;
+  background-color: rgb(196, 196, 196);
+}
+
+.court-info p {
+  width: 100%;
+  text-align: center;
+  margin: 0;
+}
+.court-info div.date {
+  width: 100%;
+  text-align: center;
+  height: 2vh;
+  border: 1px white ridge;
+  background-color: rgb(196, 196, 196);
 }
 </style>

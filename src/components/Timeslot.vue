@@ -10,7 +10,7 @@
     :data-index="index"
     :data-dateId="dateId"
     :data-courtId="courtId"
-    :style="{ zIndex: zIndex, width: slotWidthString }"
+    :style="{ width: slotWidthString, backgroundColor: backgroundColor }"
     @contextmenu="rightClick"
   >
     {{ slotId }}
@@ -26,12 +26,12 @@ export default {
     "slotId",
     "slott",
     "slotWidthString",
-    "zIndex",
     "time",
     "index",
     "dateId",
     "courtId",
     "displayed",
+    "gridIndex",
   ],
   data() {
     return {
@@ -40,13 +40,16 @@ export default {
   },
   computed: {
     ...mapGetters(["getisMatchCoppied"]),
+    backgroundColor() {
+      if (parseInt(this.gridIndex) % 2 == 0) {
+        return parseInt(this.slotId) % 2 == 0 ? "white" : "#a9a9a9";
+      } else return parseInt(this.slotId) % 2 == 0 ? "#a9a9a9" : "white";
+    },
   },
   created() {
     this.isMatchCoppied = this.$store.getters["getisMatchCoppied"];
   },
-  updated() {
-    console.log("timeslot updated");
-  },
+
   methods: {
     rightClick(e) {
       if (this.getisMatchCoppied) {
@@ -73,5 +76,6 @@ export default {
 <style scoped>
 .timeslot {
   font-size: 5px;
+  border-bottom: 2px ridge #9f9f9f;
 }
 </style>

@@ -15,6 +15,7 @@
       :totalIndex="slot.TotalIndex"
       :dateId="slot.DateId"
       :courtId="slot.CourtId"
+      :gridIndex="gridIndex"
     />
   </div>
 </template>
@@ -27,7 +28,7 @@ import { mapState } from "vuex";
 
 export default {
   components: { Timeslot },
-  props: ["date", "court", "slotWidthString"],
+  props: ["date", "court", "slotWidthString", "gridIndex"],
   data() {
     return {
       timeSlotWidth: null,
@@ -36,20 +37,18 @@ export default {
       //isMatchCoppied: false,
     };
   },
-  updated() {
-    console.log("grid updated");
-  },
+
   computed: {
     ...mapState(["isMatchCoppied"]),
-    gridZindex() {
-      debugger;
-      const zIndex = this.isMatchCoppied ? "10" : "0";
-      const gridContainers = document.querySelectorAll(".timeslots-container");
-      for (let grid of gridContainers) {
-        grid.style.zIndex = zIndex;
-      }
-      return this.isMatchCoppied ? "10" : "0";
-    },
+    // gridZindex() {
+    //   debugger;
+    //   const zIndex = this.isMatchCoppied ? "10" : "0";
+    //   const gridContainers = document.querySelectorAll(".timeslots-container");
+    //   for (let grid of gridContainers) {
+    //     grid.style.zIndex = zIndex;
+    //   }
+    //   return this.isMatchCoppied ? "10" : "0";
+    // },
   },
   watch: {
     isMatchCoppied() {
@@ -96,6 +95,9 @@ export default {
 .container-fluid {
   overflow-x: auto;
   position: relative;
+  border: 1px white ridge;
+  margin-bottom: 30px;
+  width: 95vw;
 }
 
 .court-div {
@@ -104,9 +106,9 @@ export default {
 .timeslot {
   float: left;
   height: 100%;
-  border: 1px grey ridge;
+  /* border: 1px grey ridge; */
   font-size: 6px;
-  opacity: 50%;
+  opacity: 20%;
 }
 
 .court-name {

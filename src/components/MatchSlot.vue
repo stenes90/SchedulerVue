@@ -80,9 +80,6 @@ export default {
         parseFloat(timeSlotWidth)
       ).toString() + "vw";
   },
-  updated() {
-    console.log(this.match);
-  },
 
   methods: {
     // rightClick(e) {
@@ -106,16 +103,9 @@ export default {
       }
       this.$store.dispatch("setCoppiedMatch", selectedMatchess);
       let kopiranite = this.$store.getters["getCoppiedMatch"];
-      console.log(kopiranite);
     },
 
     startDrag(e, match) {
-      console.log("drag start");
-
-      console.log(e);
-
-      e.dataTransfer.effectAllowed = "move";
-
       this.dragStarted = true;
 
       if (this.coppiedMatch.length == 1) {
@@ -132,7 +122,6 @@ export default {
         //e.dataTransfer.setData("firstMatch", this.coppiedMatch[0].Id);
 
         this.$store.dispatch("setIsMatchCoppied", true);
-        console.log("coppied true");
 
         e.preventDefault();
         document.addEventListener("mouseup", (e) => {
@@ -140,7 +129,8 @@ export default {
             return;
           }
           if (e.target.className != "timeslot") {
-            console.log("drop unsuccessful");
+            let ccheck = e.target;
+            debugger;
             this.$store.dispatch("setIsMatchCoppied", false);
 
             while (parent.firstChild) {
@@ -148,6 +138,7 @@ export default {
             }
           } else {
             const slotId = e.target.dataset.slotid;
+
             const timeFields = this.$store.getters["getTimeFields"];
             const slot = timeFields.find((c) => c.Id == slotId);
             this.onDrop(slot, this.coppiedMatch[0].Id);
@@ -256,7 +247,6 @@ export default {
             return;
           }
           if (e.target.className != "timeslot") {
-            console.log("drop unsuccessful");
             this.$store.dispatch("setIsMatchCoppied", false);
 
             while (parent.firstChild) {
@@ -274,11 +264,8 @@ export default {
         });
       }
     },
-    // drag(e) {
-    //   console.log(e);
     // },
     onDrop(slot, firstMatchId) {
-      console.log("dropped");
       this.pasteMatch(slot, firstMatchId);
       this.dragStarted = false;
     },
@@ -312,7 +299,7 @@ export default {
   position: absolute;
 
   top: 0;
-  border: 1px black solid;
+  border: 1px white solid;
   height: 10vh;
 }
 

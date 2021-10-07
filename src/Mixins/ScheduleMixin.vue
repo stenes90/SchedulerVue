@@ -2,6 +2,7 @@
 import tournament from "../../tournament.json";
 import Moment from "moment";
 import { extendMoment } from "moment-range";
+import _ from "lodash";
 export default {
   methods: {
     timeFieldWidth(classes) {
@@ -85,7 +86,6 @@ export default {
       let timeFields = this.$store.getters["getTimeFields"];
       let firstMatch = matches.find((c) => c.Id == relativMatchId);
       const firstMatchInitialSlot = firstMatch.TimeFields[0];
-      console.log(timeSlot.TotalIndex);
       const TimefieldsDistance =
         parseInt(timeSlot.TotalIndex) -
         parseInt(firstMatchInitialSlot.TotalIndex);
@@ -180,9 +180,7 @@ export default {
           (f) =>
             f.TotalIndex == matchInitialFieldTotalIndex + TimefieldsDistance
         );
-        debugger;
         if (initialField.DateId != timeSlot.DateId) {
-          console.log("opp");
           continue;
         }
 
@@ -296,16 +294,18 @@ export default {
           }
         }
       }
-      // let versions = state.versions.filter((c) => c.id <= state.activeVersion);
-      // let verId = versions.length;
-      // var _ = require("lodash");
-      // let ver = _.cloneDeep({
-      //   timeFields: timeFields,
-      //   tournament: tn,
-      //   id: verId,
-      // });
+      let versions = this.$store.getters["getVersions"];
 
-      // versions.push(ver);
+      let ver = _.cloneDeep({
+        id: versions.length,
+        matches: matches,
+        timefields: timeFields,
+      });
+      debugger;
+      versions.push(ver);
+      console.log(versions);
+      this.$store.dispatch("setVersions", versions);
+      this.$store.dispatch("setActiveVersion", versions.length);
 
       // state.setTimetableState({
       //   tournament: tn,

@@ -14,10 +14,10 @@ export const store = createStore({
       selectedTimeslot: null,
       selectedMatch: [],
       isMatchCoppied: false,
-      activeVersion: 0,
       showContextMenu: false,
       xPos: "",
       yPos: "",
+      activeVersion: 0,
       versions: [],
     };
   },
@@ -64,6 +64,9 @@ export const store = createStore({
     },
     setYpos(state, payload) {
       state.yPos = payload;
+    },
+    setActiveVersion(state, payload) {
+      state.activeVersion = payload;
     },
     setVersions(state, payload) {
       state.versions = payload;
@@ -113,6 +116,9 @@ export const store = createStore({
     setYpos(context, payload) {
       context.commit("setYpos", payload);
     },
+    setActiveVersion(context, payload) {
+      context.commit("setActiveVersion", payload);
+    },
     setVersions(context, payload) {
       context.commit("setVersions", payload);
     },
@@ -160,6 +166,9 @@ export const store = createStore({
     },
     getYpos(state) {
       return state.yPos;
+    },
+    getActiveVersion(state) {
+      return state.activeVersion;
     },
     getVersions(state) {
       return state.versions;

@@ -17,6 +17,7 @@ export default {
     parent.style.position = "fixed";
     parent.style.top = 0 + "px";
     parent.style.left = 0 + "px";
+
     const body = document.querySelector("body");
     body.appendChild(parent);
 
