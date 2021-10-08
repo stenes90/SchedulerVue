@@ -1,6 +1,6 @@
 <template>
   <div
-    draggable="true"
+    :draggable="matchChecked"
     @dragstart="startDrag($event, match)"
     @dragend="endDrag($event, match)"
     class="match match-slot"
@@ -102,11 +102,11 @@ export default {
         selectedMatchess.push(this.match);
       }
       this.$store.dispatch("setCoppiedMatch", selectedMatchess);
-      let kopiranite = this.$store.getters["getCoppiedMatch"];
     },
 
     startDrag(e, match) {
       this.dragStarted = true;
+      this.$store.dispatch("setDragActive", true);
 
       if (this.coppiedMatch.length == 1) {
         e.dataTransfer.setDragImage(new Image(), 0, 0);
@@ -268,28 +268,9 @@ export default {
     onDrop(slot, firstMatchId) {
       this.pasteMatch(slot, firstMatchId);
       this.dragStarted = false;
+      this.$store.dispatch("setDragActive", false);
+      this.$store.dispatch("setHoveredSlot", null);
     },
-    // endDrag(e, match) {
-    //   console.log("drag end");
-    //   console.log(e);
-
-    //   if (e.dataTransfer.dropEffect == "none") {
-    //     this.$store.dispatch("setIsMatchCoppied", false);
-    //   } else {
-    //     this.$store.dispatch("setIsMatchCoppied", false);
-    //     this.$store.dispatch("setCoppiedMatch", []);
-    //     //this.$store.dispatch("setSelectedMatch", []);
-    //   }
-    //   while (parent.firstChild) {
-    //     parent.removeChild(parent.firstChild);
-    //   }
-    // setTimeout(() => {
-    //   let parent = document.querySelector(".roditel");
-    //   parent.remove();
-    // }, 10);
-    // this.$store.dispatch("setIsMatchCoppied", false);
-    // this.$store.dispatch("setCoppiedMatch", null);
-    //},
   },
 };
 </script>

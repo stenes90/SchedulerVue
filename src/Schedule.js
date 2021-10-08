@@ -5,7 +5,6 @@ const schedule = (tournament) => {
   const moment = extendMoment(Moment);
   let matches = tournament.Matches;
   matches.sort((a, b) => (a.Round > b.Round ? 1 : b.Round > a.Round ? -1 : 0));
-  debugger;
   for (let i = 0; i < matches.length; i++) {
     matches[i].Id = i + 1;
   }

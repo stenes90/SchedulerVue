@@ -12,13 +12,15 @@
     :data-courtId="courtId"
     :style="{ width: slotWidthString, backgroundColor: backgroundColor }"
     @contextmenu="rightClick"
+    @mouseover="onHover(dateId, slotId, time)"
+    @mouseleave="endHover"
   >
     {{ slotId }}
   </div>
 </template>
 
 <script>
-import { mapGetters } from "vuex";
+import { mapGetters, mapState } from "vuex";
 import ScheduleMixin from "../Mixins/ScheduleMixin.vue";
 export default {
   mixins: [ScheduleMixin],
@@ -40,6 +42,7 @@ export default {
   },
   computed: {
     ...mapGetters(["getisMatchCoppied"]),
+    ...mapState(["dragActive"]),
     backgroundColor() {
       if (parseInt(this.gridIndex) % 2 == 0) {
         return parseInt(this.slotId) % 2 == 0 ? "white" : "#a9a9a9";
@@ -62,6 +65,37 @@ export default {
         e.preventDefault();
         this.$store.dispatch("setShowContextMenu", false);
       }
+    },
+    onHover(dateId, slotId, date) {
+      if (!this.dragActive) {
+        return;
+      }
+      let hoveredSlot = {};
+      hoveredSlot.DateId = dateId;
+      hoveredSlot.SlotId = slotId;
+      const dateObj = new Date(date);
+      let hours = "";
+      let minutes = "";
+      if (dateObj.getHours() < 10) {
+        hours = "0" + dateObj.getHours().toString();
+      } else {
+        hours = dateObj.getHours().toString();
+      }
+
+      if (dateObj.getMinutes() < 10) {
+        minutes = "0" + dateObj.getMinutes().toString();
+      } else {
+        minutes = dateObj.getMinutes().toString();
+      }
+      const time = hours + ":" + minutes;
+      hoveredSlot.Hour = hours;
+      hoveredSlot.Minutes = minutes;
+
+      hoveredSlot.Time = time;
+      this.$store.dispatch("setHoveredSlot", hoveredSlot);
+    },
+    endHover() {
+      // this.$store.dispatch("setHoveredSlot", null);
     },
     // onDrop(e, slot) {
     //   console.log("dropped");

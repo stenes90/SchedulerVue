@@ -27,6 +27,7 @@ export default {
       const timeSlots = [];
       const moment = extendMoment(Moment);
       let counter = 0;
+      debugger;
       //dates.forEach((date) => {
       for (let date of dates) {
         const dateCourts = date.Courts;
@@ -83,6 +84,7 @@ export default {
       let coppiedMatches = this.$store.getters["getCoppiedMatch"];
       let playingDates = this.$store.getters["playingDates"];
       let matches = this.$store.getters["getMatches"];
+      debugger;
       let timeFields = this.$store.getters["getTimeFields"];
       let firstMatch = matches.find((c) => c.Id == relativMatchId);
       const firstMatchInitialSlot = firstMatch.TimeFields[0];
@@ -191,11 +193,7 @@ export default {
         const date = playingDates.find((d) => d.Id == initialField.DateId);
 
         const courtId = initialField.CourtId;
-        let tn = null; //need to be improved
-        //let match = { ...coppiedMatch };
-        // let match = state.tournament.matches.find(
-        //   (m) => m.id == state.coppiedMatch.id
-        // );
+
         coppiedMatch.StartTime = startTime;
         coppiedMatch.EndTime = endTime;
         coppiedMatch.PlayingDate = date;
@@ -294,52 +292,22 @@ export default {
           }
         }
       }
+      debugger;
       let versions = this.$store.getters["getVersions"];
+      const activeVersionId = this.$store.getters["getActiveVersion"];
+      versions = versions.filter((c) => c.id <= activeVersionId);
 
       let ver = _.cloneDeep({
         id: versions.length,
         matches: matches,
         timefields: timeFields,
       });
-      debugger;
       versions.push(ver);
-      console.log(versions);
       this.$store.dispatch("setVersions", versions);
-      this.$store.dispatch("setActiveVersion", versions.length);
+      this.$store.dispatch("setActiveVersion", versions.length - 1);
 
-      // state.setTimetableState({
-      //   tournament: tn,
-      //   isMatchCoppied: false,
-      //   coppiedMatch: null,
-      //   versions: versions,
-      //   activeVersion: verId,
-      //   coppiedMatch: null,
-      //   isMatchCoppied: false,
-      // });
       let scheduleVersions = this.$store.getters["getVersions"];
 
-      // console.log(this.$cloneDeep);
-
-      // let ver = {
-      //   id: scheduleVersions.length + 1,
-      //   matches: this._.cloneDeep(matches),
-      //   timefields: this.lodash.cloneDeep(timeFields),
-      // };
-      //var newObject = JSON.parse(JSON.stringify(oldObject));
-      // var newMatches = JSON.parse(JSON.stringify(matches));
-      // var newTimeslots = JSON.parse(JSON.stringify(timeFields));
-      // let ver = {
-      //   id: scheduleVersions.length + 1,
-      //   matches: newMatches,
-      //   timefields: newTimeslots,
-      // };
-      // scheduleVersions.push(ver);
-      // console.log(ver);
-      // this.$store.dispatch("setVersions", scheduleVersions);
-
-      // console.log(matches);
-      // console.log(this.$store.getters["getMatches"]);
-      // console.log(matches[0] === this.$store.getters["getMatches"][0]);
       this.$store.dispatch("setIsMatchCoppied", false);
       this.$store.dispatch("setCoppiedMatch", []);
       this.$store.dispatch("setShowContextMenu", false);

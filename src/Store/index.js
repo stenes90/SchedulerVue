@@ -17,8 +17,11 @@ export const store = createStore({
       showContextMenu: false,
       xPos: "",
       yPos: "",
+      dragActive: false,
+      hoveredSlot: null,
       activeVersion: 0,
       versions: [],
+      govno: { id: 5, name: "pet" },
     };
   },
 
@@ -65,11 +68,20 @@ export const store = createStore({
     setYpos(state, payload) {
       state.yPos = payload;
     },
+    setDragActive(state, payload) {
+      state.dragActive = payload;
+    },
+    setHoveredSlot(state, payload) {
+      state.hoveredSlot = payload;
+    },
     setActiveVersion(state, payload) {
       state.activeVersion = payload;
     },
     setVersions(state, payload) {
       state.versions = payload;
+    },
+    setGovno(state, payload) {
+      state.govno = payload;
     },
   },
 
@@ -116,11 +128,20 @@ export const store = createStore({
     setYpos(context, payload) {
       context.commit("setYpos", payload);
     },
+    setDragActive(context, payload) {
+      context.commit("setDragActive", payload);
+    },
+    setHoveredSlot(context, payload) {
+      context.commit("setHoveredSlot", payload);
+    },
     setActiveVersion(context, payload) {
       context.commit("setActiveVersion", payload);
     },
     setVersions(context, payload) {
       context.commit("setVersions", payload);
+    },
+    setGovno(context, payload) {
+      context.commit("setGovno", payload);
     },
   },
 
@@ -167,11 +188,20 @@ export const store = createStore({
     getYpos(state) {
       return state.yPos;
     },
+    getDragActive(state) {
+      return state.dragActive;
+    },
+    getHoveredSlot(state) {
+      return state.hoveredSlot;
+    },
     getActiveVersion(state) {
       return state.activeVersion;
     },
     getVersions(state) {
       return state.versions;
+    },
+    getGovno(state) {
+      return state.govno;
     },
   },
 });

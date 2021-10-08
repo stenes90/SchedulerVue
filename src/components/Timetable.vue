@@ -1,8 +1,17 @@
 <template>
   <div class="timetable-page" id="timetable">
     <button @click="scheduleMatches">Schedule Matches</button>
-    <button @click="undoVersion">Undo</button>
-    <div class="time" v-if="isScheduled">
+    <button :disabled="activeVersion == 0" @click="undoVersion">
+      Undo
+    </button>
+    <button
+      :disabled="versions.length - 1 <= activeVersion"
+      @click="redoVersion"
+    >
+      Redo
+    </button>
+
+    <div class="time">
       <div class="date-container" v-for="date in dates" :key="date.Id">
         <div class="court-info">
           <div class="date">
@@ -13,7 +22,7 @@
           </div>
         </div>
         <div class="container-fluid container-scroll">
-          <TimeBar :date="date" />
+          <TimeBar :date="date" :slotWidthString="slotWidthString" />
           <div
             class="courts-container"
             v-for="(court, index) in date.Courts"
@@ -45,14 +54,19 @@ import Grid from "./Grid.vue";
 import MatchSlots from "./MatchSlots.vue";
 import ContextMenu from "./ContextMenu.vue";
 import TimeBar from "./TimeBar.vue";
+import { mapState } from "vuex";
+
 import axios from "axios";
 import _ from "lodash";
 export default {
   components: { Grid, MatchSlots, ContextMenu, TimeBar },
   mixins: [ScheduleMixin],
+  computed: {
+    ...mapState(["activeVersion", "versions"]),
+  },
   data() {
     return {
-      matches: null,
+      matches: [],
       isScheduled: false,
       dates: [],
       courts: [],
@@ -60,23 +74,14 @@ export default {
       slotWidthString: "",
       timeSlots: [],
       dragActive: false,
-      scheduleVersions: [],
-      activeVersion: null,
       rinData: null,
       parsedMatches: [],
       tn: {},
     };
   },
   created() {
-    //this.dates = tournament.PlayingDates;
-    // this.courts = tournament.Courts;
-    // this.isScheduled = this.$store.getters["getIsScheduled"];
-    // this.timeSlotWidth = this.timeFieldWidth(tournament.Classes);
-    // this.slotWidthString = this.timeSlotWidth.toString() + "vw";
-    // this.$store.dispatch("setFieldWidth", this.timeSlotWidth);
-    // this.$store.dispatch("setCourts", tournament.Courts);
-    console.log(tournament);
-    this.dragActive = this.$store.getters["getShowContextMenu"];
+    //this.dragActive = this.$store.getters["getShowContextMenu"];
+
     axios
       .get("http://localhost:9392/tournament/TimeSettingsJSON/11951")
       .then((res) => {
@@ -163,6 +168,9 @@ export default {
         this.parsedObject = parsedObject;
         console.log(this.parsedMatches);
 
+        this.timeSlots = this.timeFields(this.dates, this.matches);
+        debugger;
+        this.$store.dispatch("setTimeFields", this.timeSlots);
         this.isScheduled = this.$store.getters["getIsScheduled"];
         this.timeSlotWidth = this.timeFieldWidth(classes);
         this.slotWidthString = this.timeSlotWidth.toString() + "vw";
@@ -174,21 +182,32 @@ export default {
   },
   methods: {
     undoVersion() {
+      //this.scheduleVersions = this.$store.getters["getVersions"];
       const activeVersionId = this.$store.getters["getActiveVersion"];
-      const prevVersion = this.scheduleVersions.find(
+      const prevVersion = this.versions.find(
         (c) => c.id == activeVersionId - 1
       );
-      debugger;
-      this.$store.dispatch("setMatches", prevVersion.matches);
-      this.$store.dispatch("setTimeFields", prevVersion.timefields);
+      const matches = _.cloneDeep(prevVersion.matches);
+      const timefields = _.cloneDeep(prevVersion.timefields);
+      this.$store.dispatch("setMatches", matches);
+      this.$store.dispatch("setTimeFields", timefields);
       this.$store.dispatch("setActiveVersion", activeVersionId - 1);
-
-      console.log(prevVersion.matches[0].StartTime);
+    },
+    redoVersion() {
+      //this.scheduleVersions = this.$store.getters["getVersions"];
+      const activeVersionId = this.$store.getters["getActiveVersion"];
+      const nextVersion = this.versions.find(
+        (c) => c.id == activeVersionId + 1
+      );
+      const matches = _.cloneDeep(nextVersion.matches);
+      const timefields = _.cloneDeep(nextVersion.timefields);
+      this.$store.dispatch("setMatches", matches);
+      this.$store.dispatch("setTimeFields", timefields);
+      this.$store.dispatch("setActiveVersion", activeVersionId + 1);
     },
     scheduleMatches() {
       //this.matches = schedule(tournament);
       //console.log(this.parsedObject);
-      debugger;
       this.matches = schedule(this.parsedObject);
       this.isScheduled = true;
       //this.timeSlots = this.timeFields(tournament.PlayingDates, this.matches);
@@ -198,10 +217,8 @@ export default {
         matches: this.matches,
         timefields: this.timeSlots,
       });
-      this.scheduleVersions.push(version);
-      debugger;
-      this.$store.dispatch("setVersions", this.scheduleVersions);
-      console.log(this.$store.getters["getVersions"]);
+      this.versions.push(version);
+      this.$store.dispatch("setVersions", this.versions);
       this.activeVersion = 0;
       for (let match of this.matches) {
         match.TimeFields = [];
@@ -250,6 +267,7 @@ export default {
 
 .court-info {
   width: 8vw;
+  padding-top: 1px;
 }
 
 .court-info div.court {
@@ -269,7 +287,7 @@ export default {
 .court-info div.date {
   width: 100%;
   text-align: center;
-  height: 2vh;
+  height: 4vh;
   border: 1px white ridge;
   background-color: rgb(196, 196, 196);
 }
