@@ -19,9 +19,7 @@ export default {
       className: "",
     };
   },
-
   computed: {
-    ...mapState(["dragActive", "hoveredSlot"]),
     borderLeft() {
       if (this.index == 0) {
         return "none";
@@ -31,36 +29,6 @@ export default {
       if (this.index == 11) {
         return "none";
       } else return "1px white ridge";
-    },
-  },
-  watch: {
-    hoveredSlot() {
-      // setTimeout(() => {
-      //   if (this.hoveredSlot != null) {
-      //     const searchTerm = `div.fraction[data-dateid="${this.hoveredSlot.DateId}"][time="${this.hoveredSlot.Time}"]`;
-      //     const fraction = document.querySelector(searchTerm);
-      //     // let fractions = document.querySelectorAll("div.fraction");
-      //     // fractions = fractions.filter(
-      //     //   (c) => c.getAttribute("data-dateid") == this.hoveredSlot.DateId
-      //     // );
-      //     // const fraction = fractions.find(
-      //     //   (c) => c.getAttribute("time") == this.hoveredSlot.Time
-      //     // );
-      //     fraction.style.backgroundColor = "black";
-      //   }
-      // }, 100);
-      // if (this.hoveredSlot != null) {
-      //   console.log(this.hoveredSlot);
-      //   debugger;
-      //   if (
-      //     this.dragActive &&
-      //     this.hoveredSlot.DateId == this.dateId &&
-      //     this.hoveredSlot.Hour == this.hour &&
-      //     this.hoveredSlot.Minutes == this.minutes
-      //   ) {
-      //     this.className = "active";
-      //   }
-      // }
     },
   },
 };

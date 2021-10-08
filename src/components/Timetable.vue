@@ -169,7 +169,6 @@ export default {
         console.log(this.parsedMatches);
 
         this.timeSlots = this.timeFields(this.dates, this.matches);
-        debugger;
         this.$store.dispatch("setTimeFields", this.timeSlots);
         this.isScheduled = this.$store.getters["getIsScheduled"];
         this.timeSlotWidth = this.timeFieldWidth(classes);

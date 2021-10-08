@@ -27,7 +27,6 @@ export default {
       const timeSlots = [];
       const moment = extendMoment(Moment);
       let counter = 0;
-      debugger;
       //dates.forEach((date) => {
       for (let date of dates) {
         const dateCourts = date.Courts;
