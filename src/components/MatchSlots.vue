@@ -28,17 +28,6 @@ export default {
         .filter((d) => d.CourtId == this.court.Id);
     },
   },
-
-  // mounted() {
-  //   console.log(this.matchesForDateAndCourt);
-  //   debugger;
-  // },
-  // created() {
-  //   this.matches = this.$store.getters["getMatches"];
-  //   this.matches = this.matches
-  //     .filter((c) => c.PlayingDate.Id == this.date.Id)
-  //     .filter((d) => d.CourtId == this.court.Id);
-  // },
 };
 </script>
 

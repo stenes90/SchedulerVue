@@ -1,6 +1,6 @@
 <template>
   <div
-    class="row columns timeslots-container"
+    class="columns timeslots-container"
     :style="{ width: scrollerWidthString }"
   >
     <Timeslot
@@ -92,7 +92,7 @@ export default {
   position: absolute;
 }
 
-.container-fluid {
+.container-fluidd {
   overflow-x: auto;
   position: relative;
   border: 1px white ridge;

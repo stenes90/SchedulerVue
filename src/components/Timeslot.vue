@@ -52,7 +52,9 @@ export default {
   created() {
     this.isMatchCoppied = this.$store.getters["getisMatchCoppied"];
   },
-
+  updated() {
+    console.log("timeslot updated");
+  },
   methods: {
     rightClick(e) {
       if (this.getisMatchCoppied) {

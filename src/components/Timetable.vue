@@ -11,8 +11,14 @@
       Redo
     </button>
 
+    <button @click="showTimesModal">Times</button>
+
     <div class="time">
-      <div class="date-container" v-for="date in dates" :key="date.Id">
+      <div
+        class="date-container"
+        v-for="date in dates"
+        :key="date.Id + datesUpdater"
+      >
         <div class="court-info">
           <div class="date">
             <p>{{ date.StartTime.toDateString().slice(0, -5) }}</p>
@@ -21,7 +27,7 @@
             <p>{{ court.Name }}</p>
           </div>
         </div>
-        <div class="container-fluid container-scroll">
+        <div class="container-fluidd container-scrolll">
           <TimeBar :date="date" :slotWidthString="slotWidthString" />
           <div
             class="courts-container"
@@ -39,6 +45,7 @@
         </div>
       </div>
       <ContextMenu match="" timeSlot="" />
+      <TimesModal v-if="showModal" />
     </div>
   </div>
 </template>
@@ -54,15 +61,16 @@ import Grid from "./Grid.vue";
 import MatchSlots from "./MatchSlots.vue";
 import ContextMenu from "./ContextMenu.vue";
 import TimeBar from "./TimeBar.vue";
+import TimesModal from "./TimesModal.vue";
 import { mapState } from "vuex";
 
 import axios from "axios";
 import _ from "lodash";
 export default {
-  components: { Grid, MatchSlots, ContextMenu, TimeBar },
+  components: { Grid, MatchSlots, ContextMenu, TimeBar, TimesModal },
   mixins: [ScheduleMixin],
   computed: {
-    ...mapState(["activeVersion", "versions"]),
+    ...mapState(["activeVersion", "versions", "showModal", "model"]),
   },
   data() {
     return {
@@ -76,8 +84,35 @@ export default {
       dragActive: false,
       rinData: null,
       parsedMatches: [],
+      datesUpdater: 0,
       tn: {},
     };
+  },
+  watch: {
+    model() {
+      this.timeSlots = this.timeFields(
+        this.model.PlayingDates,
+        this.model.Matches
+      );
+      this.$store.dispatch("setTimeFields", this.timeSlots);
+      this.$store.dispatch("setPlayingDates", this.model.PlayingDates);
+      this.dates = this.model.PlayingDates;
+      this.datesUpdater += 1000;
+      debugger;
+      // if (this.isScheduled) {
+      //   for (let match of this.matches) {
+      //     let matchInitialFieldId = match.TimeFields[0].Id;
+      //     let matchQuery = `div[data-matchid="${match.Id}"]`;
+      //     let fieldEl = document.querySelector(
+      //       `div[data-slotid="${matchInitialFieldId}"]`
+      //     );
+      //     let matchEl = document.querySelector(matchQuery);
+      //     matchEl.style.left = fieldEl.style.left;
+
+      //     match.Updater += 1000;
+      //   }
+      // }
+    },
   },
   created() {
     //this.dragActive = this.$store.getters["getShowContextMenu"];
@@ -165,18 +200,20 @@ export default {
         parsedObject.PlayingDates = playingDates;
         parsedObject.Classes = classes;
         parsedObject.Matches = matches;
+        parsedObject.Courts = res.data.Courts;
+
         this.parsedObject = parsedObject;
-        console.log(this.parsedMatches);
+        console.log(this.parsedObject);
 
         this.timeSlots = this.timeFields(this.dates, this.matches);
+        this.$store.dispatch("setModel", this.parsedObject);
         this.$store.dispatch("setTimeFields", this.timeSlots);
-        this.isScheduled = this.$store.getters["getIsScheduled"];
         this.timeSlotWidth = this.timeFieldWidth(classes);
         this.slotWidthString = this.timeSlotWidth.toString() + "vw";
         this.$store.dispatch("setFieldWidth", this.timeSlotWidth);
         this.$store.dispatch("setCourts", res.data.Courts);
         this.$store.dispatch("setClasses", classes);
-        this.$store.dispatch("setPlayingDates", playingDates);
+        this.$store.dispatch("setPlayingDates", this.dates);
       });
   },
   methods: {
@@ -204,6 +241,9 @@ export default {
       this.$store.dispatch("setTimeFields", timefields);
       this.$store.dispatch("setActiveVersion", activeVersionId + 1);
     },
+    showTimesModal() {
+      this.$store.dispatch("setShowModal", true);
+    },
     scheduleMatches() {
       //this.matches = schedule(tournament);
       //console.log(this.parsedObject);
@@ -218,7 +258,6 @@ export default {
       });
       this.versions.push(version);
       this.$store.dispatch("setVersions", this.versions);
-      this.activeVersion = 0;
       for (let match of this.matches) {
         match.TimeFields = [];
 

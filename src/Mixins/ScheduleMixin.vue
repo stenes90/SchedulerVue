@@ -47,10 +47,13 @@ export default {
             const range = moment.range(start, end);
             const displayed = start < startTime ? false : true;
             let empty = true;
+
             matchesLoop: for (let match of matches) {
-              if (range.intersect(match.TimeRange)) {
-                empty = false;
-                break matchesLoop;
+              if (match.IsScheduled) {
+                if (range.intersect(match.TimeRange)) {
+                  empty = false;
+                  break matchesLoop;
+                }
               }
             }
             timeSlots.push({

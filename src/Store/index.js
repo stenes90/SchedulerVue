@@ -7,6 +7,7 @@ export const store = createStore({
       classes: [],
       playingDates: [],
       courts: [],
+      model: null,
       isScheduled: false,
       fieldWidth: null,
       timeFields: [],
@@ -21,7 +22,7 @@ export const store = createStore({
       hoveredSlot: null,
       activeVersion: 0,
       versions: [],
-      govno: { id: 5, name: "pet" },
+      showModal: false,
     };
   },
 
@@ -37,6 +38,9 @@ export const store = createStore({
     },
     setCourts(state, payload) {
       state.courts = payload;
+    },
+    setModel(state, payload) {
+      state.model = payload;
     },
     setIsScheduled(state, payload) {
       state.isScheduled = payload;
@@ -80,8 +84,8 @@ export const store = createStore({
     setVersions(state, payload) {
       state.versions = payload;
     },
-    setGovno(state, payload) {
-      state.govno = payload;
+    setShowModal(state, payload) {
+      state.showModal = payload;
     },
   },
 
@@ -97,6 +101,9 @@ export const store = createStore({
     },
     setCourts(context, payload) {
       context.commit("setCourts", payload);
+    },
+    setModel(context, payload) {
+      context.commit("setModel", payload);
     },
     setIsScheduled(context, payload) {
       context.commit("setIsScheduled", payload);
@@ -140,8 +147,8 @@ export const store = createStore({
     setVersions(context, payload) {
       context.commit("setVersions", payload);
     },
-    setGovno(context, payload) {
-      context.commit("setGovno", payload);
+    setShowModal(context, payload) {
+      context.commit("setShowModal", payload);
     },
   },
 
@@ -157,6 +164,9 @@ export const store = createStore({
     },
     courts(state) {
       return state.courts;
+    },
+    getModel(state) {
+      return state.model;
     },
     getIsScheduled(state) {
       return state.isScheduled;
@@ -200,8 +210,8 @@ export const store = createStore({
     getVersions(state) {
       return state.versions;
     },
-    getGovno(state) {
-      return state.govno;
+    getShowModal(state) {
+      return state.showModal;
     },
   },
 });

@@ -11,11 +11,11 @@
       <div class="fractions">
         <TimeBarFraction
           :style="{ width: slotWidthString }"
-          v-for="(tenMin, indexx) in 12 * initialTimestampWidth"
+          v-for="(tenMin, indexx) in Math.round(12 * initialTimestampWidth)"
           :key="indexx"
           :index="indexx"
           :minutes="orderedMinutesNotEqual[indexx]"
-          :hour="time.getHours() + index"
+          :hour="time.getHours()"
           :dateId="date.Id"
         />
       </div>
@@ -23,11 +23,11 @@
     <div
       :style="{ width: timeBarStampWidthString }"
       class="time-bar-hour"
-      v-for="(bar, index) in Math.floor(timeBarStampsCount) + 1"
+      v-for="(bar, index) in Math.floor(timeBarStampsCount)"
       :key="bar"
     >
       <div class="one-hour">
-        <p>{{ time.getHours() + index }}:00</p>
+        <p>{{ time.getHours() + index + orderedMinutesNotEqualCounter }}:00</p>
       </div>
       <div class="fractions">
         <TimeBarFraction
@@ -61,6 +61,7 @@ export default {
       timeBarStampWidthString: null,
     };
   },
+
   computed: {
     ...mapState(["dragActive"]),
 
@@ -70,7 +71,6 @@ export default {
       } else return this.time.getMinutes();
     },
     orderedMinutes() {
-      debugger;
       if (this.initialTimestampWidthString == "") {
         const initMinutes = this.time.getMinutes();
         const minutes = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
@@ -129,6 +129,9 @@ export default {
       ];
       return fullString.slice(cut);
     },
+    orderedMinutesNotEqualCounter() {
+      return this.initialTimestampWidthString == "" ? 0 : 1;
+    },
   },
   created() {
     const startTime = new Date(this.date.StartTime);
@@ -141,7 +144,7 @@ export default {
     const timeFieldWidth = this.$store.getters["getFieldWidth"];
     const timeBarStampWidth = 12 * timeFieldWidth;
     this.timeBarStampWidthString = timeBarStampWidth.toString() + "vw";
-    if (this.timeBarStampsCount % 2 != 0) {
+    if (this.timeBarStampsCount % 1 != 0) {
       this.initialTimestampWidth = this.timeBarStampsCount % 1;
       this.initialTimestampWidthString =
         (this.initialTimestampWidth * timeBarStampWidth).toString() + "vw";

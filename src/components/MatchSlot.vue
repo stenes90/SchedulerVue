@@ -48,7 +48,7 @@ export default {
   },
   computed: {
     ...mapGetters(["getisMatchCoppied"]),
-    ...mapState(["coppiedMatch", "courts"]),
+    ...mapState(["coppiedMatch", "courts", "playingDates"]),
     color() {
       let classs = this.classes.find((c) => c.Id == this.match.ClassId);
       let index = this.classes.indexOf(classs);
@@ -61,12 +61,16 @@ export default {
       return this.coppiedMatch.includes(this.match);
     },
   },
-
   created() {
+    debugger;
+    console.log("match created");
     this.classes = this.$store.getters["getClasses"];
 
     this.matchStartTime = moment(this.match.StartTime);
-    this.dateStartTime = moment(this.match.PlayingDate.StartTime);
+    //this.dateStartTime = moment(this.match.PlayingDate.StartTime);
+    this.dateStartTime = moment(
+      this.playingDates.find((c) => c.Id == this.match.PlayingDate.Id).StartTime
+    );
     const timeSlotWidth = this.$store.getters["getFieldWidth"];
     let minutesFromStart = this.matchStartTime.diff(
       this.dateStartTime,
