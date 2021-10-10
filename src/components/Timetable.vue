@@ -98,20 +98,6 @@ export default {
       this.$store.dispatch("setPlayingDates", this.model.PlayingDates);
       this.dates = this.model.PlayingDates;
       this.datesUpdater += 1000;
-      debugger;
-      // if (this.isScheduled) {
-      //   for (let match of this.matches) {
-      //     let matchInitialFieldId = match.TimeFields[0].Id;
-      //     let matchQuery = `div[data-matchid="${match.Id}"]`;
-      //     let fieldEl = document.querySelector(
-      //       `div[data-slotid="${matchInitialFieldId}"]`
-      //     );
-      //     let matchEl = document.querySelector(matchQuery);
-      //     matchEl.style.left = fieldEl.style.left;
-
-      //     match.Updater += 1000;
-      //   }
-      // }
     },
   },
   created() {
@@ -247,7 +233,13 @@ export default {
     scheduleMatches() {
       //this.matches = schedule(tournament);
       //console.log(this.parsedObject);
-      this.matches = schedule(this.parsedObject);
+      this.$store.dispatch("setActiveVersion", 0);
+      this.$store.dispatch("setVersions", []);
+      for (let match of this.matches) {
+        match.IsScheduled = false;
+      }
+      this.matches = schedule(this.model);
+      debugger;
       this.isScheduled = true;
       //this.timeSlots = this.timeFields(tournament.PlayingDates, this.matches);
       this.timeSlots = this.timeFields(this.dates, this.matches);
