@@ -249,16 +249,25 @@ export default {
       } else {
         const court = this.model.Courts.find((c) => c.Id == id);
         this.selectedDate.Courts.push(court);
+        //   initialFieldsForCoppiedMatches = initialFieldsForCoppiedMatches.sort(
+        //   (a, b) => {
+        //     return a - b;
+        //   }
+        // );
+        debugger;
+        this.selectedDate.Courts = this.selectedDate.Courts.sort((a, b) => {
+          return a.Id - b.Id;
+        });
       }
     },
     selectClass(id) {
       this.selectedClass = this.classes.find((c) => c.Id == id);
     },
     updateBreak(e) {
-      this.selectedClass.BreakBetweenMatches = e.target.value;
+      this.selectedClass.BreakBetweenMatches = parseInt(e.target.value);
     },
     updateDuration(e) {
-      this.selectedClass.MatchDuration = e.target.value;
+      this.selectedClass.MatchDuration = parseInt(e.target.value);
     },
     saveChanges() {
       this.$store.dispatch("setPlayingDates", this.dates);
@@ -267,7 +276,6 @@ export default {
       mod.PlayingDates = this.dates;
       mod.Classes = this.classes;
       this.$store.dispatch("setModel", mod);
-      //this.$store.dispatch("setModel", this.model);
 
       this.$store.dispatch("setShowModal", false);
     },
@@ -287,7 +295,7 @@ export default {
         "Nov",
         "Dec",
       ];
-      return d.getDay() + " " + monthNames[d.getMonth()];
+      return d.getDate() + " " + monthNames[d.getMonth()];
     },
   },
 };

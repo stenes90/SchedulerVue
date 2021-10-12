@@ -23,8 +23,9 @@ export default {
       return timeFieldWidth;
     },
 
-    timeFields(dates, matches) {
-      const timeSlots = [];
+    //timeFields(dates, matches) {
+    generateTimeFields(dates, matches) {
+      let timeSlots = [];
       const moment = extendMoment(Moment);
       let counter = 0;
       //dates.forEach((date) => {
@@ -50,12 +51,16 @@ export default {
 
             matchesLoop: for (let match of matches) {
               if (match.IsScheduled) {
-                if (range.intersect(match.TimeRange)) {
+                if (
+                  range.intersect(match.TimeRange) &&
+                  court.Id == match.CourtId
+                ) {
                   empty = false;
                   break matchesLoop;
                 }
               }
             }
+
             timeSlots.push({
               Id: counter,
               Time: initialTime.format(),
@@ -72,6 +77,21 @@ export default {
           }
         });
       }
+      //start test
+      let totalMatchesTime = 0;
+      for (let item of matches.filter((c) => c.IsScheduled == true)) {
+        totalMatchesTime += item.MatchDuration;
+      }
+      let notEmptyTimeslots = timeSlots.filter((c) => c.Empty == false);
+      let totalBusyTime = notEmptyTimeslots.length * 5;
+      if (totalMatchesTime != totalBusyTime) {
+        console.log("Total matches time: " + totalMatchesTime);
+        console.log("Total busy slots time: " + totalBusyTime);
+        timeSlots = null;
+      }
+
+      //end test
+
       return timeSlots;
     },
 
@@ -86,7 +106,6 @@ export default {
       let coppiedMatches = this.$store.getters["getCoppiedMatch"];
       let playingDates = this.$store.getters["playingDates"];
       let matches = this.$store.getters["getMatches"];
-      debugger;
       let timeFields = this.$store.getters["getTimeFields"];
       let firstMatch = matches.find((c) => c.Id == relativMatchId);
       const firstMatchInitialSlot = firstMatch.TimeFields[0];
@@ -166,14 +185,16 @@ export default {
       //START ghosting the coppied matches
       for (let coppiedMatch of orderedCoppiedMatches) {
         coppiedMatch.InitialField = coppiedMatch.TimeFields[0].TotalIndex;
+
         coppiedMatch.TimeFields.forEach((item) => {
+          timeFields.find((c) => c.Id == item.Id).Empty = true;
           item.Empty = true;
         });
         coppiedMatch.TimeFields = [];
       }
 
       //FINISH ghosting the coppied matches
-
+      let scheduledCoppiedMatches = [];
       for (let coppiedMatch of orderedCoppiedMatches) {
         const coppiedMatchFields = coppiedMatch.TimeFields;
         // const matchInitialFieldTotalIndex =
@@ -218,9 +239,13 @@ export default {
           field.Empty = true;
         });
 
-        const matchesForCourt = matches
+        let matchesForCourt = matches
           .filter((m) => m.CourtId == initialField.CourtId)
           .filter((c) => c.PlayingDate.Id == initialField.DateId);
+
+        for (let itemm of orderedCoppiedMatches) {
+          matchesForCourt = matchesForCourt.filter((c) => c.Id != itemm.Id);
+        }
 
         const firstIntersectedMatch = this.FirstIntersectedMatch(
           coppiedMatch,
@@ -267,6 +292,12 @@ export default {
           }
         }
 
+        matchesForCourt.push(coppiedMatch);
+        for (let itemm of scheduledCoppiedMatches) {
+          matchesForCourt.push(itemm);
+        }
+        scheduledCoppiedMatches.push(coppiedMatch);
+
         matchesForCourt.forEach((match) => {
           match.TimeFields = [];
           const timeFieldsForDateAndCourt = timeFields
@@ -294,7 +325,28 @@ export default {
           }
         }
       }
-      debugger;
+
+      //start test
+      let totalMatchesTime = 0;
+      for (let item of matches.filter((c) => c.IsScheduled == true)) {
+        totalMatchesTime += item.MatchDuration;
+      }
+      let notEmptyTimeslots = timeFields.filter((c) => c.Empty == false);
+
+      let totalBusyTime = notEmptyTimeslots.length * 5;
+      if (totalMatchesTime != totalBusyTime) {
+        console.log("Total matches time: " + totalMatchesTime);
+        console.log("Total busy slots time: " + totalBusyTime);
+        console.log(notEmptyTimeslots);
+        console.log(matches);
+        console.log(
+          matches.find((c) => c.TimeFields.includes((c) => c.Id == 426))
+        );
+        this.$store.dispatch("setShowScheduleErrorModal", true);
+      }
+
+      //end test
+
       let versions = this.$store.getters["getVersions"];
       const activeVersionId = this.$store.getters["getActiveVersion"];
       versions = versions.filter((c) => c.id <= activeVersionId);
@@ -307,8 +359,6 @@ export default {
       versions.push(ver);
       this.$store.dispatch("setVersions", versions);
       this.$store.dispatch("setActiveVersion", versions.length - 1);
-
-      let scheduleVersions = this.$store.getters["getVersions"];
 
       this.$store.dispatch("setIsMatchCoppied", false);
       this.$store.dispatch("setCoppiedMatch", []);

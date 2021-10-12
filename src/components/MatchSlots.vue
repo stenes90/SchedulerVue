@@ -24,6 +24,7 @@ export default {
     ...mapState(["matches"]),
     matchesForDateAndCourt() {
       return this.matches
+        .filter((a) => a.IsScheduled == true)
         .filter((c) => c.PlayingDate.Id == this.date.Id)
         .filter((d) => d.CourtId == this.court.Id);
     },

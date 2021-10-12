@@ -23,6 +23,8 @@ export const store = createStore({
       activeVersion: 0,
       versions: [],
       showModal: false,
+      showAdvModal: false,
+      showScheduleErrorModal: false, //just for testing
     };
   },
 
@@ -87,6 +89,12 @@ export const store = createStore({
     setShowModal(state, payload) {
       state.showModal = payload;
     },
+    setShowAdvModal(state, payload) {
+      state.showAdvModal = payload;
+    },
+    setShowScheduleErrorModal(state, payload) {
+      state.showScheduleErrorModal = payload;
+    },
   },
 
   actions: {
@@ -150,6 +158,12 @@ export const store = createStore({
     setShowModal(context, payload) {
       context.commit("setShowModal", payload);
     },
+    setShowAdvModal(context, payload) {
+      context.commit("setShowAdvModal", payload);
+    },
+    setShowScheduleErrorModal(context, payload) {
+      context.commit("setShowScheduleErrorModal", payload);
+    },
   },
 
   getters: {
@@ -212,6 +226,12 @@ export const store = createStore({
     },
     getShowModal(state) {
       return state.showModal;
+    },
+    getShowAdvModal(state) {
+      return state.showAdvModal;
+    },
+    getShowScheduleErrorModal(state) {
+      return state.showScheduleErrorModal;
     },
   },
 });

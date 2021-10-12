@@ -62,7 +62,6 @@ export default {
     },
   },
   created() {
-    debugger;
     console.log("match created");
     this.classes = this.$store.getters["getClasses"];
 

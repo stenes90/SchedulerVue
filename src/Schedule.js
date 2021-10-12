@@ -22,7 +22,6 @@ const schedule = (tournament) => {
     allPlayers.push(pl1);
     allPlayers.push(pl2);
   }
-  debugger;
   let class1Players = allPlayers.filter(
     (c) => c.classId == tournament.Classes[0].Id
   );

@@ -50,6 +50,7 @@ export default {
     },
   },
   created() {
+    console.log("timeslot created");
     this.isMatchCoppied = this.$store.getters["getisMatchCoppied"];
   },
   updated() {
@@ -111,7 +112,7 @@ export default {
 
 <style scoped>
 .timeslot {
-  font-size: 5px;
+  font-size: 8px;
   border-bottom: 2px ridge #9f9f9f;
 }
 </style>

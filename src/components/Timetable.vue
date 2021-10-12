@@ -12,6 +12,7 @@
     </button>
 
     <button @click="showTimesModal">Times</button>
+    <button @click="showAdvTimesModal">Advanced Settings</button>
 
     <div class="time">
       <div
@@ -46,6 +47,8 @@
       </div>
       <ContextMenu match="" timeSlot="" />
       <TimesModal v-if="showModal" />
+      <AdvancedSettingModal v-if="showAdvModal" />
+      <ErrorModal v-if="showScheduleErrorModal" />
     </div>
   </div>
 </template>
@@ -62,41 +65,74 @@ import MatchSlots from "./MatchSlots.vue";
 import ContextMenu from "./ContextMenu.vue";
 import TimeBar from "./TimeBar.vue";
 import TimesModal from "./TimesModal.vue";
+import AdvancedSettingModal from "./AdvancedSettingModal.vue";
+import ErrorModal from "./ErrorModal.vue";
 import { mapState } from "vuex";
 
 import axios from "axios";
 import _ from "lodash";
 export default {
-  components: { Grid, MatchSlots, ContextMenu, TimeBar, TimesModal },
+  components: {
+    Grid,
+    MatchSlots,
+    ContextMenu,
+    TimeBar,
+    TimesModal,
+    AdvancedSettingModal,
+    ErrorModal,
+  },
   mixins: [ScheduleMixin],
   computed: {
-    ...mapState(["activeVersion", "versions", "showModal", "model"]),
+    ...mapState([
+      "activeVersion",
+      "versions",
+      "showModal",
+      "showAdvModal",
+      "model",
+      "showScheduleErrorModal",
+      "timeFields",
+      "matches",
+    ]),
   },
   data() {
     return {
-      matches: [],
       isScheduled: false,
       dates: [],
       courts: [],
       timeSlotWidth: "",
       slotWidthString: "",
-      timeSlots: [],
+      //timeSlots: [],
       dragActive: false,
       rinData: null,
-      parsedMatches: [],
       datesUpdater: 0,
       tn: {},
     };
   },
   watch: {
     model() {
-      this.timeSlots = this.timeFields(
-        this.model.PlayingDates,
-        this.model.Matches
+      debugger;
+      const timeSlots = this.generateTimeFields(
+        this.$store.getters["playingDates"],
+        this.matches
       );
-      this.$store.dispatch("setTimeFields", this.timeSlots);
-      this.$store.dispatch("setPlayingDates", this.model.PlayingDates);
-      this.dates = this.model.PlayingDates;
+      if (this.isScheduled) {
+        this.updateMatchTimeslotsAndBusySlots(this.matches);
+      }
+      const version = _.cloneDeep({
+        id: 0,
+        matches: this.matches,
+        timefields: timeSlots,
+      });
+      debugger;
+      const versions = [];
+      versions.push(version);
+
+      this.$store.dispatch("setVersions", versions);
+      this.$store.dispatch("setActiveVersion", 0);
+
+      this.$store.dispatch("setTimeFields", timeSlots);
+      //this.$store.dispatch("setPlayingDates", this.model.PlayingDates);
+      this.dates = this.$store.getters["playingDates"];
       this.datesUpdater += 1000;
     },
   },
@@ -161,7 +197,11 @@ export default {
               var dateTwoString = day + "-" + (month + 1) + "-" + year;
 
               if (dateOneString == dateTwoString) {
-                classPlDates.push(date);
+                let plDate = {};
+                plDate.Id = date.Id;
+                plDate.Rounds = null;
+                //classPlDates.push(date);
+                classPlDates.push(plDate);
               }
             }
           }
@@ -180,7 +220,6 @@ export default {
           parsedMatch.MatchDuration = 30;
           matches.push(parsedMatch);
         }
-        this.parsedMatches = matches;
 
         const parsedObject = {};
         parsedObject.PlayingDates = playingDates;
@@ -191,9 +230,11 @@ export default {
         this.parsedObject = parsedObject;
         console.log(this.parsedObject);
 
-        this.timeSlots = this.timeFields(this.dates, this.matches);
+        debugger;
+        this.timeFields = this.generateTimeFields(this.dates, matches);
         this.$store.dispatch("setModel", this.parsedObject);
         this.$store.dispatch("setTimeFields", this.timeSlots);
+        this.$store.dispatch("setMatches", matches);
         this.timeSlotWidth = this.timeFieldWidth(classes);
         this.slotWidthString = this.timeSlotWidth.toString() + "vw";
         this.$store.dispatch("setFieldWidth", this.timeSlotWidth);
@@ -230,52 +271,62 @@ export default {
     showTimesModal() {
       this.$store.dispatch("setShowModal", true);
     },
+    showAdvTimesModal() {
+      this.$store.dispatch("setShowAdvModal", true);
+    },
     scheduleMatches() {
-      //this.matches = schedule(tournament);
-      //console.log(this.parsedObject);
       this.$store.dispatch("setActiveVersion", 0);
       this.$store.dispatch("setVersions", []);
       for (let match of this.matches) {
         match.IsScheduled = false;
       }
-      this.matches = schedule(this.model);
-      debugger;
+
+      const model = {};
+      model.PlayingDates = this.$store.getters["playingDates"];
+      model.Classes = this.$store.getters["getClasses"];
+      model.Matches = this.matches;
+      model.Courts = this.$store.getters["courts"];
+
+      let matches = schedule(model);
+      this.updateMatchTimeslotsAndBusySlots(matches);
+
       this.isScheduled = true;
-      //this.timeSlots = this.timeFields(tournament.PlayingDates, this.matches);
-      this.timeSlots = this.timeFields(this.dates, this.matches);
       const version = _.cloneDeep({
         id: 0,
-        matches: this.matches,
-        timefields: this.timeSlots,
+        matches: matches,
+        timefields: this.timeFields,
       });
       this.versions.push(version);
       this.$store.dispatch("setVersions", this.versions);
-      for (let match of this.matches) {
+      this.$store.dispatch("setIsScheduled", true);
+      // this.$store.dispatch("setTimeFields", this.timeSlots);
+      // this.$store.dispatch("setMatches", this.matches);
+      this.$store.dispatch("setTimeFields", version.timefields);
+      this.$store.dispatch("setMatches", version.matches);
+
+      // for (let court of this.courts) {
+      //   court.Matches = this.matches.filter((c) => c.CourtId == court.Id);
+      //   for (let date of this.dates) {
+      //     let dateCourt = date.Courts.find((c) => c.Id == court.Id);
+      //     if (dateCourt) {
+      //       dateCourt.Matches = this.matches.filter(
+      //         (c) => c.CourtId == court.Id
+      //       );
+      //     }
+      //   }
+      // }
+    },
+    updateMatchTimeslotsAndBusySlots(matches) {
+      for (let match of matches) {
         match.TimeFields = [];
 
-        const courtSlots = this.timeSlots.filter(
+        const courtSlots = this.timeFields.filter(
           (c) => c.CourtId == match.CourtId
         );
         for (let slot of courtSlots) {
           if (slot.Range.intersect(match.TimeRange)) {
             match.TimeFields.push(slot);
-          }
-        }
-      }
-      this.$store.dispatch("setTimeFields", this.timeSlots);
-      this.$store.dispatch("setMatches", this.matches);
-      this.$store.dispatch("setIsScheduled", true);
-      // this.$store.dispatch("setClasses", tournament.Classes);
-      // this.$store.dispatch("setPlayingDates", tournament.PlayingDates);
-
-      for (let court of this.courts) {
-        court.Matches = this.matches.filter((c) => c.CourtId == court.Id);
-        for (let date of this.dates) {
-          let dateCourt = date.Courts.find((c) => c.Id == court.Id);
-          if (dateCourt) {
-            dateCourt.Matches = this.matches.filter(
-              (c) => c.CourtId == court.Id
-            );
+            slot.Empty = false;
           }
         }
       }

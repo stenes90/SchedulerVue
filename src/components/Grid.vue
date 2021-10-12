@@ -5,7 +5,7 @@
   >
     <Timeslot
       v-for="slot in timeSlots"
-      :key="slot.Id"
+      :key="slot.Id.toString() + slot.Empty.toString()"
       :slott="slot"
       :slotId="slot.Id"
       v-show="slot.Displayed"
@@ -33,22 +33,13 @@ export default {
     return {
       timeSlotWidth: null,
       scrollerWidthString: "",
-      timeSlots: [],
+      //timeSlots: [],
       //isMatchCoppied: false,
     };
   },
 
   computed: {
-    ...mapState(["isMatchCoppied"]),
-    // gridZindex() {
-    //   debugger;
-    //   const zIndex = this.isMatchCoppied ? "10" : "0";
-    //   const gridContainers = document.querySelectorAll(".timeslots-container");
-    //   for (let grid of gridContainers) {
-    //     grid.style.zIndex = zIndex;
-    //   }
-    //   return this.isMatchCoppied ? "10" : "0";
-    // },
+    ...mapState(["isMatchCoppied", "timeFields"]),
   },
   watch: {
     isMatchCoppied() {
@@ -62,8 +53,8 @@ export default {
 
   created() {
     this.timeSlotWidth = this.$store.getters["getFieldWidth"];
-    this.timeSlots = this.$store.getters["getTimeFields"];
-    this.timeSlots = this.timeSlots
+    // this.timeSlots = this.$store.getters["getTimeFields"];
+    this.timeSlots = this.timeFields
       .filter((c) => c.DateId == this.date.Id)
       .filter((d) => d.CourtId == this.court.Id);
 
