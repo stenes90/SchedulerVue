@@ -1,3 +1,4 @@
+import { first } from "lodash";
 import Moment from "moment";
 import { extendMoment } from "moment-range";
 
@@ -6,30 +7,30 @@ const schedule = (tournament) => {
   let matches = tournament.Matches;
 
   // extracting players from matches
-  let allPlayers = [];
-  for (let item of matches) {
-    let player1 = item.Player1;
-    let player2 = item.Player2;
-    let clId = item.ClassId;
-    let pl1 = {
-      name: player1,
-      classId: clId,
-    };
-    let pl2 = {
-      name: player2,
-      classId: clId,
-    };
-    allPlayers.push(pl1);
-    allPlayers.push(pl2);
-  }
-  let class1Players = allPlayers.filter(
-    (c) => c.classId == tournament.Classes[0].Id
-  );
-  let class2Players = allPlayers.filter(
-    (c) => c.classId == tournament.Classes[1].Id
-  );
-  class1Players = [...new Set(class1Players.map((item) => item.name))];
-  class2Players = [...new Set(class2Players.map((item) => item.name))];
+  // let allPlayers = [];
+  // for (let item of matches) {
+  //   let player1 = item.Player1;
+  //   let player2 = item.Player2;
+  //   let clId = item.ClassId;
+  //   let pl1 = {
+  //     name: player1,
+  //     classId: clId,
+  //   };
+  //   let pl2 = {
+  //     name: player2,
+  //     classId: clId,
+  //   };
+  //   allPlayers.push(pl1);
+  //   allPlayers.push(pl2);
+  // }
+  // let class1Players = allPlayers.filter(
+  //   (c) => c.classId == tournament.Classes[0].Id
+  // );
+  // let class2Players = allPlayers.filter(
+  //   (c) => c.classId == tournament.Classes[1].Id
+  // );
+  // class1Players = [...new Set(class1Players.map((item) => item.name))];
+  // class2Players = [...new Set(class2Players.map((item) => item.name))];
 
   // end extracting
 
@@ -44,8 +45,29 @@ const schedule = (tournament) => {
   let listOfScheduledMatches = [];
 
   for (let actualDate of tournament.PlayingDates) {
-    scheduledMatches = matches.filter((c) => c.IsScheduled == true);
-    notScheduledMatches = matches.filter((c) => c.IsScheduled == false);
+    //start
+    if (actualDate.AdvSchedule) {
+      let matchesss = [];
+
+      for (let item of actualDate.Classes) {
+        let roundIds = [];
+        for (let r of item.Rounds) {
+          roundIds.push(r.Id);
+        }
+        const filteredMatches = matches.filter((c) => c.ClassId == item.Id);
+        for (let roundId of roundIds) {
+          let filteredM = filteredMatches.filter((c) => c.Round == roundId);
+          for (let m of filteredM) matchesss.push(m);
+        }
+      }
+      notScheduledMatches = matchesss;
+    } else {
+      notScheduledMatches = matches.filter((c) => c.IsScheduled == false);
+    }
+
+    //end
+    // scheduledMatches = matches.filter((c) => c.IsScheduled == true);
+    // notScheduledMatches = matches.filter((c) => c.IsScheduled == false);
     let listOfCourts = actualDate.Courts;
 
     for (let match of notScheduledMatches) {
@@ -103,9 +125,18 @@ const schedule = (tournament) => {
 
         while (checkTime.end < moment(actualDate.EndTime)) {
           if (scheduledMatchesForCourt.length == 0) {
-            match.StartTime = moment(actualDate.StartTime);
-            listOfStartTimesForEachCourt.push(match.StartTime);
-            break;
+            if (
+              nextAvailableTimeForClassMatch != "" &&
+              checkTime.start < nextAvailableTimeForClassMatch
+            ) {
+              match.StartTime = moment(nextAvailableTimeForClassMatch);
+              listOfStartTimesForEachCourt.push(match.StartTime);
+              break;
+            } else {
+              match.StartTime = moment(actualDate.StartTime);
+              listOfStartTimesForEachCourt.push(match.StartTime);
+              break;
+            }
           } else {
             let overlap = false;
             for (let i = 0; i < listOfMatchTimeRangesForCourt.length; i++) {
@@ -117,7 +148,9 @@ const schedule = (tournament) => {
                 break;
               }
             }
-
+            // if (match.Id == 3) {
+            //   debugger;
+            // }
             if (overlap || checkTime.start < nextAvailableTimeForClassMatch) {
               checkTime.end = moment(checkTime.end).add(5, "m");
               checkTime.start = moment(checkTime.start).add(5, "m");

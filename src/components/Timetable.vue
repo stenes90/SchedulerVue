@@ -110,7 +110,6 @@ export default {
   },
   watch: {
     model() {
-      debugger;
       const timeSlots = this.generateTimeFields(
         this.$store.getters["playingDates"],
         this.matches
@@ -123,7 +122,6 @@ export default {
         matches: this.matches,
         timefields: timeSlots,
       });
-      debugger;
       const versions = [];
       versions.push(version);
 
@@ -162,6 +160,8 @@ export default {
           plDate.StartTime = startTime;
           plDate.EndTime = endTime;
           plDate.Courts = res.data.Courts;
+          plDate.Classes = [];
+          plDate.AdvSchedule = false;
           playingDates.push(plDate);
         }
         this.dates = playingDates;
@@ -200,11 +200,32 @@ export default {
                 let plDate = {};
                 plDate.Id = date.Id;
                 plDate.Rounds = null;
-                //classPlDates.push(date);
+                // plDate.AdvSchedule = false;
+
                 classPlDates.push(plDate);
               }
             }
           }
+
+          //adding class rounds START
+          const classMatches = res.data.Matches.filter(
+            (c) => c.ClassId == klasa.Id
+          );
+          let rounds = [];
+          klas.Rounds = [];
+          for (let match of classMatches) {
+            rounds.push(match.Round);
+          }
+          rounds = [...new Set(rounds)];
+          for (let it of rounds) {
+            let r = {};
+            r.Id = it;
+            r.DateId = null;
+            klas.Rounds.push(r);
+          }
+
+          //adding class rounds END
+
           klas.PlayingDates = classPlDates;
           classes.push(klas);
         }
@@ -229,8 +250,6 @@ export default {
 
         this.parsedObject = parsedObject;
         console.log(this.parsedObject);
-
-        debugger;
         this.timeFields = this.generateTimeFields(this.dates, matches);
         this.$store.dispatch("setModel", this.parsedObject);
         this.$store.dispatch("setTimeFields", this.timeSlots);
@@ -289,32 +308,23 @@ export default {
 
       let matches = schedule(model);
       this.updateMatchTimeslotsAndBusySlots(matches);
+      const timeSlots = this.generateTimeFields(
+        this.$store.getters["playingDates"],
+        matches
+      );
 
       this.isScheduled = true;
       const version = _.cloneDeep({
         id: 0,
         matches: matches,
-        timefields: this.timeFields,
+        timefields: timeSlots,
       });
       this.versions.push(version);
       this.$store.dispatch("setVersions", this.versions);
       this.$store.dispatch("setIsScheduled", true);
-      // this.$store.dispatch("setTimeFields", this.timeSlots);
-      // this.$store.dispatch("setMatches", this.matches);
-      this.$store.dispatch("setTimeFields", version.timefields);
-      this.$store.dispatch("setMatches", version.matches);
-
-      // for (let court of this.courts) {
-      //   court.Matches = this.matches.filter((c) => c.CourtId == court.Id);
-      //   for (let date of this.dates) {
-      //     let dateCourt = date.Courts.find((c) => c.Id == court.Id);
-      //     if (dateCourt) {
-      //       dateCourt.Matches = this.matches.filter(
-      //         (c) => c.CourtId == court.Id
-      //       );
-      //     }
-      //   }
-      // }
+      this.$store.dispatch("setTimeFields", timeSlots);
+      this.$store.dispatch("setMatches", matches);
+      this.datesUpdater += 1000;
     },
     updateMatchTimeslotsAndBusySlots(matches) {
       for (let match of matches) {
