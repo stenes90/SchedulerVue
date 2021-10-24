@@ -34,26 +34,48 @@
             </div>
           </td>
           <td>{{ klasa.Name }}</td>
-          <td v-for="date in playingDates" :key="date.Id">
+          <td v-for="(date, index) in playingDates" :key="date.Id">
             <div class="input-group mb-3">
               <input
+                :readonly="index == playingDates.length - 1"
                 type="number"
                 class="form-control"
                 placeholder="Max"
                 :value="
                   date.AdvSchedule && date.Classes.some((c) => c.Id == klasa.Id)
-                    ? klasa.Rounds.filter((c) => c.DateId == date.Id).length
+                    ? date.Classes.find((c) => c.Id == klasa.Id).Rounds.filter(
+                        (c) => c.DateId == date.Id
+                      ).length //? klasa.Rounds.filter((c) => c.DateId == date.Id).length
                     : null
                 "
                 @input="updateRounds($event, klasa.Id, date.Id)"
               />
             </div>
           </td>
-          <td>x</td>
-          <td>x</td>
+          <td>{{ totalRoundsForClass(klasa.Id) }}</td>
+          <td>{{ totalMatchesForClass(klasa.Id) }}</td>
         </tr>
       </tbody>
     </table>
+    <table v-if="model != null" class="table table-bordered">
+      <thead>
+        <tr>
+          <th scope="col">Date</th>
+          <th scope="col">Scheduled Slots for date %</th>
+          <th scope="col">Last Match End Time</th>
+          <th scope="col">Total Matches</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="date in playingDates" :key="date.Id">
+          <td>{{ getDate(date.StartTime) }}</td>
+          <td>{{ scheduledPercent(date.Id) }}</td>
+          <td>{{ lastMatchEndTime(date.Id) }}</td>
+          <td>{{ totalMatchesForDate(date.Id) }}</td>
+        </tr>
+      </tbody>
+    </table>
+
     <p v-if="errorMsg">
       In order yo use Adv Schedule, you must fill all round inputs for a Date
     </p>
@@ -66,18 +88,39 @@
 <script>
 import { mapState } from "vuex";
 import _ from "lodash";
+import Moment from "moment";
+
 import DailyCheck from "../DaylyScheduleCheck";
+import ScheduleMixin from "../Mixins/ScheduleMixin.vue";
+
 export default {
+  mixins: [ScheduleMixin],
   data() {
     return {
       classes: [],
       playingDates: [],
       showError: false,
+      model: null,
+      matches: [],
     };
   },
   created() {
     this.playingDates = _.cloneDeep(this.$store.getters["playingDates"]);
     this.classes = _.cloneDeep(this.$store.getters["getClasses"]);
+    this.matches = this.$store.getters["getMatches"];
+    debugger;
+    if (this.playingDates.some((c) => c.AdvSchedule)) {
+      const model = {};
+      model.PlayingDates = this.playingDates;
+      model.Matches = this.$store.getters["getMatches"];
+      model.Classes = this.$store.getters["getClasses"];
+      model.Courts = this.$store.getters["courts"];
+      let matches = DailyCheck(model);
+      model.Matches = matches;
+      this.model = model;
+      this.matches = matches;
+    }
+    debugger;
   },
   computed: {
     errorMsg() {
@@ -96,7 +139,16 @@ export default {
   methods: {
     saveChanges() {
       console.log(this.classes);
-      console.log(this.playingDates);
+      console.log(this.$store.getters["getClasses"]);
+      let classes = [];
+      for (let kl of this.classes) {
+        const klasa = this.$store.getters["getClasses"].find(
+          (c) => c.Id == kl.Id
+        );
+        classes.push(klasa);
+      }
+      debugger;
+      this.$store.dispatch("setClasses", classes);
       this.$store.dispatch("setPlayingDates", this.playingDates);
       this.$store.dispatch("setShowAdvModal", false);
     },
@@ -209,12 +261,75 @@ export default {
       }
       const model = {};
       model.PlayingDates = this.playingDates;
-      model.Classes = this.$store.getters["getClasses"];
       model.Matches = this.$store.getters["getMatches"];
+      model.Classes = this.$store.getters["getClasses"];
       model.Courts = this.$store.getters["courts"];
 
-      let matches = DailyCheck(model, date);
+      let matches = DailyCheck(model);
+      model.Matches = matches;
+      this.model = model;
+    },
+    scheduledPercent(dateId) {
+      //const moment = extendMoment(Moment);
+      const timefields = this.generateTimeFields(
+        this.model.PlayingDates,
+        this.model.Matches
+      );
+      const date = this.model.PlayingDates.find((c) => c.Id == dateId);
+      const dateEndTime = Moment(date.EndTime);
+      const totalDisplayedTimefieldsForDate = timefields
+        .filter((c) => c.DateId == dateId)
+        .filter((d) => d.Displayed == true)
+        .filter((e) => Moment(e.Time) < dateEndTime);
+
+      const totalBusyFieldsForDate = totalDisplayedTimefieldsForDate.filter(
+        (c) => c.Empty == false
+      );
+      let percent =
+        totalBusyFieldsForDate.length /
+        (totalDisplayedTimefieldsForDate.length / 100);
+      percent = Math.round(percent);
+
       debugger;
+      return percent.toString() + "%";
+    },
+    lastMatchEndTime(dateId) {
+      let lastMatchDate = Moment(new Date(0, 0, 0));
+      let matchesForDate = this.model.Matches.filter(
+        (c) => c.PlayingDate.Id == dateId
+      );
+      for (let match of matchesForDate) {
+        if (Moment(match.EndTime) > lastMatchDate) {
+          lastMatchDate = Moment(match.EndTime);
+        }
+      }
+
+      return matchesForDate.length == 0
+        ? "No Matches for this date"
+        : lastMatchDate.format("hh:mm");
+    },
+
+    totalMatchesForDate(dateId) {
+      let matchesForDate = this.model.Matches.filter(
+        (c) => c.PlayingDate.Id == dateId
+      );
+
+      return matchesForDate.length.toString();
+    },
+
+    totalRoundsForClass(classId) {
+      debugger;
+      let matchesForClass = this.matches.filter((c) => c.ClassId == classId);
+      let rounds = [];
+      for (let match of matchesForClass) {
+        rounds.push(parseInt(match.Round));
+      }
+      return Math.max(...rounds).toString();
+    },
+    totalMatchesForClass(classId) {
+      let matchesForClass = this.matches.filter((c) => c.ClassId == classId);
+
+      return matchesForClass.length.toString();
     },
   },
 };
